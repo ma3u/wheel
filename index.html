@@ -278,8 +278,9 @@ Hannah</textarea>
   const params  = new URLSearchParams(window.location.search);
   const isJoin  = params.has('join');
   const addName = params.get('add');
-  const baseUrl = location.origin + location.pathname;
-  const joinUrl = baseUrl + '?join';
+  const baseUrl    = location.origin + location.pathname;
+  const ghPagesUrl = 'https://ma3u.github.io/wheel/';
+  const joinUrl    = ghPagesUrl + '?join';
 
   /* ── MOBILE JOIN MODE ── */
   if (isJoin) {
@@ -294,7 +295,7 @@ Hannah</textarea>
       const name = inp.value.trim();
       if (!name) { inp.style.borderColor = '#ef4444'; return; }
       document.getElementById('joinTicketName').textContent = name;
-      const ticketUrl = baseUrl + '?add=' + encodeURIComponent(name);
+      const ticketUrl = ghPagesUrl + '?add=' + encodeURIComponent(name);
       try {
         await QRCode.toCanvas(document.getElementById('joinQrCanvas'), ticketUrl, {
           width: 200, margin: 1,
