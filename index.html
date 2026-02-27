@@ -433,6 +433,35 @@ try {
     '#ef4444','#14b8a6','#d946ef','#eab308',
     '#6366f1','#22d3ee','#e11d48','#0ea5e9'
   ];
+
+  // 100 unique emojis assigned deterministically by name hash
+  const EMOJIS = [
+    '\ud83e\udd81','\ud83d\udc27','\ud83e\udd8a','\ud83d\udc3c','\ud83e\udd84',
+    '\ud83d\udc2c','\ud83e\udd89','\ud83d\udc22','\ud83e\udd8b','\ud83d\udc19',
+    '\ud83e\udd8e','\ud83d\udc35','\ud83e\udd9a','\ud83d\udc3a','\ud83e\udd94',
+    '\ud83d\udc38','\ud83e\udd9c','\ud83d\udc37','\ud83e\udd93','\ud83d\udc28',
+    '\ud83e\udd9e','\ud83d\udc33','\ud83e\udd86','\ud83d\udc3b','\ud83e\udd85',
+    '\ud83d\udc36','\ud83e\udd99','\ud83d\udc31','\ud83e\udd9b','\ud83d\udc2d',
+    '\ud83d\udc30','\ud83d\udc39','\ud83e\udda5','\ud83d\udc3e','\ud83e\udd87',
+    '\ud83d\udc34','\ud83e\udda9','\ud83d\udc20','\ud83e\udda6','\ud83d\udc26',
+    '\ud83e\udd8d','\ud83d\udc18','\ud83e\udda8','\ud83d\udc29','\ud83e\udd9d',
+    '\ud83d\udc1d','\ud83e\uddac','\ud83d\udc0a','\ud83e\uddad','\ud83d\udc1b',
+    '\ud83c\udf1f','\ud83c\udf08','\ud83c\udf3b','\ud83c\udf3a','\ud83c\udf38',
+    '\ud83c\udf37','\ud83c\udf35','\ud83c\udf32','\ud83c\udf3f','\ud83c\udf40',
+    '\ud83c\udf1e','\ud83c\udf1a','\ud83c\udf1d','\ud83c\udf19','\u2b50',
+    '\ud83d\udc8e','\ud83c\udf0d','\ud83c\udf0b','\u26a1','\ud83d\udd25',
+    '\u2744\ufe0f','\ud83c\udf0a','\ud83c\udf43','\ud83c\udf41','\ud83c\udf42',
+    '\ud83c\udf39','\ud83c\udf3c','\ud83c\udf3e','\ud83c\udf34','\ud83c\udf33',
+    '\ud83c\udfb8','\ud83c\udfb5','\ud83c\udfa8','\ud83c\udfaf','\ud83c\udfc6',
+    '\ud83d\ude80','\ud83d\udef8','\u2708\ufe0f','\ud83c\udfdd\ufe0f','\ud83c\udfd4\ufe0f',
+    '\ud83c\udf75','\ud83c\udf54','\ud83c\udf55','\ud83c\udf70','\ud83c\udf69',
+    '\ud83c\udf53','\ud83c\udf4e','\ud83c\udf47','\ud83c\udf4a','\ud83c\udf4b'
+  ];
+  function emojiFor(name) {
+    let h = 0;
+    for (let i = 0; i < name.length; i++) h = ((h << 5) - h + name.charCodeAt(i)) | 0;
+    return EMOJIS[((h % EMOJIS.length) + EMOJIS.length) % EMOJIS.length];
+  }
   let names = [], rotation = 0, spinning = false, inPres = false, pending = [];
   let joinedViaQR = [];  // persistent list of names joined via QR (never cleared by Firebase listeners)
 
@@ -477,7 +506,7 @@ try {
       chip.className = 'attendee-chip';
       chip.style.background = COLORS[i % COLORS.length];
       chip.title = name;
-      chip.textContent = name;
+      chip.textContent = emojiFor(name) + ' ' + name;
       chips.appendChild(chip);
     });
     if (countEl) countEl.textContent = list.length ? list.length + ' on the wheel' : 'No participants yet';
@@ -505,9 +534,10 @@ try {
       ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 5;
       const fs = Math.max(W/70, Math.min(W/26, W * 1.4 / Math.max(names.length, 1) / 9));
       ctx.font = '700 ' + fs + 'px Inter,system-ui,sans-serif';
-      let txt = name;
+      const emoji = emojiFor(name);
+      let txt = emoji + ' ' + name;
       while (ctx.measureText(txt).width > R * 0.52 && txt.length > 1) txt = txt.slice(0, -1);
-      if (txt !== name) txt += '\u2026';
+      if (txt !== emoji + ' ' + name) txt += '\u2026';
       ctx.fillText(txt, R - 28, fs / 3);
       ctx.shadowBlur = 0; ctx.restore();
     });
@@ -545,7 +575,8 @@ try {
   }
 
   function showWinner(name) {
-    winnerNameEl.textContent = name;
+    document.querySelector('.winner-emoji').textContent = emojiFor(name);
+    winnerNameEl.textContent = emojiFor(name) + ' ' + name;
     winnerOverlay.classList.add('show');
     rainConfetti();
   }
@@ -577,7 +608,7 @@ try {
     }
     joinedViaQR.forEach((name) => {
       const li = document.createElement('li');
-      li.innerHTML = '<span>\u2705 ' + name + '</span>';
+      li.innerHTML = '<span>' + emojiFor(name) + ' ' + name + '</span>';
       pendingList.appendChild(li);
     });
   }
