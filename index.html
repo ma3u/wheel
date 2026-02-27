@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Wheel of Names – Global AI Community</title>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800;900&family=Open+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-analytics-compat.js"></script>
@@ -589,22 +588,17 @@ try {
     });
   }
 
-  async function makeQR(imgEl, url, size) {
-    try {
-      const dataUrl = await QRCode.toDataURL(url, {
-        width: size, margin: 2,
-        color: { dark: '#000000', light: '#ffffff' },
-        errorCorrectionLevel: 'M'
-      });
-      imgEl.src = dataUrl;
-      imgEl.width  = size;
-      imgEl.height = size;
-    } catch(e) { console.error('QR generation failed:', e); }
+  function makeQR(imgEl, url, size) {
+    imgEl.src = 'https://api.qrserver.com/v1/create-qr-code/?size=' + size + 'x' + size
+      + '&data=' + encodeURIComponent(url) + '&margin=10&format=png';
+    imgEl.width  = size;
+    imgEl.height = size;
+    imgEl.alt    = url;
   }
 
   document.getElementById('qrUrlLabel').textContent = joinUrl;
-  await makeQR(document.getElementById('qrImg'),     joinUrl, 220);
-  await makeQR(document.getElementById('presQrImg'), joinUrl, 100);
+  makeQR(document.getElementById('qrImg'),     joinUrl, 220);
+  makeQR(document.getElementById('presQrImg'), joinUrl, 100);
 
   /* ── FIREBASE REALTIME LISTENERS ── */
   const fbStatusEl = document.getElementById('fbStatus');
