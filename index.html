@@ -258,7 +258,7 @@ Hannah</textarea>
       <div class="panel panel-qr">
         <div class="panel-title"><span class="icon">&#128241;</span> Join via Mobile</div>
         <div class="qr-wrap">
-          <div class="qr-img-wrap"><canvas id="qrCanvas"></canvas></div>
+          <div class="qr-img-wrap"><img id="qrImg" alt="QR Code" style="display:block;"></div>
           <div class="qr-url" id="qrUrlLabel"></div>
           <div class="qr-cta">&#128247; Scan to add your name to the wheel</div>
           <span class="fb-status" id="fbStatus"></span>
@@ -285,7 +285,7 @@ Hannah</textarea>
   <button class="pres-spin-btn" id="presSpinBtn">&#127919; SPIN THE WHEEL</button>
   <div class="pres-count">Participants: <span id="presCount">0</span></div>
   <div class="pres-qr">
-    <div class="qr-img-wrap" style="padding:8px;"><canvas id="presQrCanvas"></canvas></div>
+    <div class="qr-img-wrap" style="padding:8px;"><img id="presQrImg" alt="QR Code" style="display:block;"></div>
     <p>&#128241; Scan to join</p>
   </div>
 </div>
@@ -589,19 +589,22 @@ try {
     });
   }
 
-  async function makeQR(canvas, url, size) {
+  async function makeQR(imgEl, url, size) {
     try {
-      await QRCode.toCanvas(canvas, url, {
-        width: size, margin: 1,
-        color: { dark: '#060c1a', light: '#fff' },
+      const dataUrl = await QRCode.toDataURL(url, {
+        width: size, margin: 2,
+        color: { dark: '#000000', light: '#ffffff' },
         errorCorrectionLevel: 'M'
       });
-    } catch(e) {}
+      imgEl.src = dataUrl;
+      imgEl.width  = size;
+      imgEl.height = size;
+    } catch(e) { console.error('QR generation failed:', e); }
   }
 
   document.getElementById('qrUrlLabel').textContent = joinUrl;
-  await makeQR(document.getElementById('qrCanvas'),     joinUrl, 220);
-  await makeQR(document.getElementById('presQrCanvas'), joinUrl, 100);
+  await makeQR(document.getElementById('qrImg'),     joinUrl, 220);
+  await makeQR(document.getElementById('presQrImg'), joinUrl, 100);
 
   /* ── FIREBASE REALTIME LISTENERS ── */
   const fbStatusEl = document.getElementById('fbStatus');
