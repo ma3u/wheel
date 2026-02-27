@@ -113,8 +113,10 @@
     .pres-spin-btn:hover{transform:scale(1.05);box-shadow:0 6px 70px rgba(213,82,43,.7);}
     .pres-spin-btn:active{transform:scale(.97);}
     .pres-spin-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none;}
-    .pres-qr{position:absolute;bottom:28px;right:28px;background:rgba(30,34,78,.85);border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:14px;text-align:center;}
-    .pres-qr p{font-size:.6rem;color:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-top:8px;font-family:'Montserrat',sans-serif;}
+    .pres-qr{position:absolute;bottom:28px;right:28px;background:rgba(30,34,78,.85);border:1px solid rgba(255,255,255,.08);border-radius:18px;padding:20px;text-align:center;}
+    .pres-qr .qr-img-wrap{padding:12px!important;}
+    .pres-qr .qr-img-wrap img{width:200px!important;height:200px!important;}
+    .pres-qr p{font-size:.75rem;color:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-top:10px;font-family:'Montserrat',sans-serif;}
     .pres-count{position:absolute;bottom:36px;left:36px;font-size:1rem;color:var(--text-secondary);font-weight:600;font-family:'Montserrat',sans-serif;}
     .pres-count span{color:var(--accent-light);font-weight:900;font-size:1.3rem;}
     .pres-actions{display:flex;gap:10px;margin-top:18px;}
@@ -292,7 +294,6 @@ Hannah</textarea>
   </div>
   <div class="pres-actions">
     <button class="pres-spin-btn" id="presSpinBtn">&#127919; SPIN THE WHEEL</button>
-    <button class="pres-clear-btn" id="presClearBtn">&#10005; Clear All</button>
   </div>
   <div class="pres-count">Participants: <span id="presCount">0</span></div>
   <div class="pres-qr">
@@ -716,7 +717,6 @@ try {
     document.exitFullscreen?.().catch(() => {});
   }
   presClose.addEventListener('click', exitPres);
-  document.getElementById('presClearBtn').addEventListener('click', clearAll);
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
   spinBtn.addEventListener('click', spin);
   presSpinBtn.addEventListener('click', spin);
