@@ -348,6 +348,26 @@ Hannah</textarea>
   ];
   let names = [], rotation = 0, spinning = false, inPres = false, pending = [];
 
+  /* ── MULTI-INSTANCE SYNC via BroadcastChannel ── */
+  const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('wheel-sync') : null;
+  function broadcast() {
+    bc?.postMessage({ namesText: namesInput.value, pending: [...pending] });
+  }
+  if (bc) {
+    bc.onmessage = ({ data }) => {
+      namesInput.value = data.namesText;
+      pending = data.pending;
+      parseNames(); draw(); renderPending();
+    };
+  }
+
+  /* ── DUPLICATE CHECK (case-insensitive) ── */
+  function nameExists(name) {
+    const lc = name.toLowerCase();
+    return names.some(n => n.toLowerCase() === lc) ||
+           pending.some(n => n.toLowerCase() === lc);
+  }
+
   const audio = new (window.AudioContext || window.webkitAudioContext)();
   function tick() {
     const o = audio.createOscillator(), g = audio.createGain();
@@ -450,15 +470,17 @@ Hannah</textarea>
       return;
     }
     pending.forEach((n, i) => {
+      const isDup = names.some(x => x.toLowerCase() === n.toLowerCase());
       const li = document.createElement('li');
-      li.innerHTML = '<span>' + n + '</span><button class="add-btn" data-i="' + i + '">+ Add</button>';
+      li.innerHTML = '<span>' + n + (isDup ? ' <span style="font-size:.65rem;color:#f59e0b;font-weight:700;">(already on wheel)</span>' : '') + '</span>'
+        + '<button class="add-btn" data-i="' + i + '"' + (isDup ? ' disabled style="opacity:.4;cursor:not-allowed;"' : '') + '>+ Add</button>';
       pendingList.appendChild(li);
     });
-    pendingList.querySelectorAll('.add-btn').forEach(b => {
+    pendingList.querySelectorAll('.add-btn:not([disabled])').forEach(b => {
       b.addEventListener('click', () => {
         const idx = +b.dataset.i, name = pending.splice(idx, 1)[0];
         namesInput.value = (namesInput.value.trim() + '\n' + name).trim();
-        parseNames(); draw(); renderPending();
+        parseNames(); draw(); renderPending(); broadcast();
         toast('\u2705 ' + name + ' added to the wheel!');
       });
     });
@@ -482,8 +504,12 @@ Hannah</textarea>
 
   if (addName) {
     const d = decodeURIComponent(addName);
-    pending.push(d); renderPending();
-    toast('\ud83d\udcf2 ' + d + ' wants to join! Click \u201c+ Add\u201d to add them.', 5000);
+    if (nameExists(d)) {
+      toast('\u26a0\ufe0f ' + d + ' is already on the wheel or in the queue.', 5000);
+    } else {
+      pending.push(d); renderPending(); broadcast();
+      toast('\ud83d\udcf2 ' + d + ' wants to join! Click \u201c+ Add\u201d to add them.', 5000);
+    }
     history.replaceState({}, '', baseUrl);
   }
 
@@ -502,17 +528,17 @@ Hannah</textarea>
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
   spinBtn.addEventListener('click', spin);
   presSpinBtn.addEventListener('click', spin);
-  updateBtn.addEventListener('click', () => { parseNames(); draw(); toast('\u2705 Wheel updated!'); });
+  updateBtn.addEventListener('click', () => { parseNames(); draw(); broadcast(); toast('\u2705 Wheel updated!'); });
   shuffleBtn.addEventListener('click', () => {
     parseNames();
     for (let i = names.length-1; i > 0; i--) {
       const j = Math.floor(Math.random()*(i+1));
       [names[i], names[j]] = [names[j], names[i]];
     }
-    namesInput.value = names.join('\n'); draw(); toast('\ud83d\udd00 Names shuffled!');
+    namesInput.value = names.join('\n'); draw(); broadcast(); toast('\ud83d\udd00 Names shuffled!');
   });
   clearBtn.addEventListener('click', () => {
-    if (confirm('Clear all names?')) { namesInput.value = ''; parseNames(); draw(); }
+    if (confirm('Clear all names?')) { namesInput.value = ''; parseNames(); draw(); broadcast(); }
   });
   winnerClose.addEventListener('click', () => winnerOverlay.classList.remove('show'));
   winnerOverlay.addEventListener('click', e => { if (e.target === winnerOverlay) winnerOverlay.classList.remove('show'); });
