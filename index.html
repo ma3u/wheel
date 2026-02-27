@@ -113,6 +113,9 @@
     .pres-qr p{font-size:.6rem;color:var(--accent-light);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-top:8px;font-family:'Montserrat',sans-serif;}
     .pres-count{position:absolute;bottom:36px;left:36px;font-size:1rem;color:var(--text-secondary);font-weight:600;font-family:'Montserrat',sans-serif;}
     .pres-count span{color:var(--accent-light);font-weight:900;font-size:1.3rem;}
+    .pres-actions{display:flex;gap:10px;margin-top:18px;}
+    .pres-clear-btn{padding:12px 36px;font-size:.95rem;font-weight:700;border:none;border-radius:50px;background:rgba(239,68,68,.15);color:#f87171;cursor:pointer;font-family:'Montserrat',sans-serif;border:1px solid rgba(239,68,68,.35);transition:all .2s;}
+    .pres-clear-btn:hover{background:rgba(239,68,68,.35);color:#fff;}
     /* WINNER */
     .winner-overlay{display:none;position:fixed;inset:0;background:rgba(9,31,44,.92);backdrop-filter:blur(10px);z-index:350;justify-content:center;align-items:center;}
     .winner-overlay.show{display:flex;}
@@ -281,7 +284,10 @@ Hannah</textarea>
     <canvas id="presCanvas" width="1280" height="1280"></canvas>
     <div class="center-circle" style="width:70px;height:70px;font-size:28px;">&#127775;</div>
   </div>
-  <button class="pres-spin-btn" id="presSpinBtn">&#127919; SPIN THE WHEEL</button>
+  <div class="pres-actions">
+    <button class="pres-spin-btn" id="presSpinBtn">&#127919; SPIN THE WHEEL</button>
+    <button class="pres-clear-btn" id="presClearBtn">&#10005; Clear All</button>
+  </div>
   <div class="pres-count">Participants: <span id="presCount">0</span></div>
   <div class="pres-qr">
     <div class="qr-img-wrap" style="padding:8px;"><img id="presQrImg" alt="QR Code" style="display:block;"></div>
@@ -427,6 +433,7 @@ try {
     '#6366f1','#22d3ee','#e11d48','#0ea5e9'
   ];
   let names = [], rotation = 0, spinning = false, inPres = false, pending = [];
+  let joinedViaQR = [];  // persistent list of names joined via QR (never cleared by Firebase listeners)
 
   /* ── MULTI-INSTANCE SYNC via BroadcastChannel ── */
   const bc = typeof BroadcastChannel !== 'undefined' ? new BroadcastChannel('wheel-sync') : null;
@@ -563,12 +570,11 @@ try {
 
   function renderPending() {
     pendingList.innerHTML = '';
-    if (!pending.length) {
+    if (!joinedViaQR.length) {
       pendingList.innerHTML = '<li class="empty-pending">No one yet &mdash; share the QR code!</li>';
       return;
     }
-    pending.forEach((item) => {
-      const name = typeof item === 'string' ? item : item.name;
+    joinedViaQR.forEach((name) => {
       const li = document.createElement('li');
       li.innerHTML = '<span>\u2705 ' + name + '</span>';
       pendingList.appendChild(li);
@@ -629,6 +635,8 @@ try {
         if (!alreadyOnWheel) {
           namesInput.value = (namesInput.value.trim() + '\n' + item.name).trim();
           parseNames(); draw();
+          joinedViaQR.push(item.name);
+          renderPending();
           if (!initialLoad) toast('\ud83d\udcf2 ' + item.name + ' joined via QR!', 4000);
           scheduleNamesSave();
           broadcast();
@@ -670,6 +678,17 @@ try {
     document.exitFullscreen?.().catch(() => {});
   }
   presClose.addEventListener('click', exitPres);
+  document.getElementById('presClearBtn').addEventListener('click', () => {
+    if (confirm('Clear all names from the wheel?')) {
+      namesInput.value = ''; joinedViaQR = []; pending = [];
+      parseNames(); draw(); renderPending(); broadcast();
+      if (fbDb) {
+        fbDb.ref('wheel/names').set('').catch(() => {});
+        fbDb.ref('wheel/pending').remove().catch(() => {});
+      }
+      toast('\ud83d\uddd1\ufe0f Wheel cleared!');
+    }
+  });
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
   spinBtn.addEventListener('click', spin);
   presSpinBtn.addEventListener('click', spin);
@@ -690,7 +709,8 @@ try {
   });
   clearBtn.addEventListener('click', () => {
     if (confirm('Clear all names?')) {
-      namesInput.value = ''; parseNames(); draw(); broadcast();
+      namesInput.value = ''; joinedViaQR = []; pending = [];
+      parseNames(); draw(); renderPending(); broadcast();
       if (fbDb) {
         fbDb.ref('wheel/names').set('').catch(() => {});
         fbDb.ref('wheel/pending').remove().catch(() => {});
