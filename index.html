@@ -311,7 +311,7 @@ Hannah</textarea>
 window.FB_CFG = {
   apiKey:            'AIzaSyB4GH6gY13Wc5yzc9OZRfxF_l458ANfHvw',
   authDomain:        'wheel-global-ai.firebaseapp.com',
-  databaseURL:       'https://wheel-global-ai-default-rtdb.firebaseio.com',
+  databaseURL:       'https://wheel-global-ai-default-rtdb.europe-west1.firebasedatabase.app',
   projectId:         'wheel-global-ai',
   storageBucket:     'wheel-global-ai.firebasestorage.app',
   messagingSenderId: '201680074561',
@@ -363,10 +363,17 @@ try {
       }
 
       try {
-        const [namesSnap, pendingSnap] = await Promise.all([
+        // Timeout helper — abort if Firebase doesn't respond in 8 seconds
+        function withTimeout(promise, ms) {
+          return Promise.race([
+            promise,
+            new Promise((_, rej) => setTimeout(() => rej(new Error('Request timed out — check your network or Firebase config')), ms))
+          ]);
+        }
+        const [namesSnap, pendingSnap] = await withTimeout(Promise.all([
           fbDb.ref('wheel/names').get(),
           fbDb.ref('wheel/pending').get()
-        ]);
+        ]), 8000);
         const existing = (namesSnap.val() || '').split('\n').map(n => n.trim()).filter(Boolean);
         const inQueue  = Object.values(pendingSnap.val() || {}).map(v => v.name);
         const all = [...existing, ...inQueue];
@@ -376,13 +383,14 @@ try {
           btn.disabled = false; btn.textContent = 'Add me to the wheel \uD83C\uDFAF';
           return;
         }
-        await fbDb.ref('wheel/pending').push({ name, ts: Date.now() });
+        await withTimeout(fbDb.ref('wheel/pending').push({ name, ts: Date.now() }), 8000);
         document.getElementById('joinTicketName').textContent = name;
         fc.style.display = 'none'; sw.classList.add('show');
       } catch(e) {
-        errEl.textContent = 'Error: ' + e.message;
+        errEl.textContent = '\u26a0\ufe0f ' + (e.message || 'Unknown error — please try again');
         errEl.classList.add('show');
         btn.disabled = false; btn.textContent = 'Add me to the wheel \uD83C\uDFAF';
+        console.error('Join failed:', e);
       }
     }
     btn.addEventListener('click', doJoin);

@@ -1,0 +1,14 @@
+{
+  "rules": {
+    "wheel": {
+      "names": {
+        ".read": true,
+        ".write": true
+      },
+      "pending": {
+        ".read": true,
+        ".write": true
+      }
+    }
+  }
+}
