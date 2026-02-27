@@ -54,6 +54,9 @@
     .spin-footer{display:flex;flex-direction:column;align-items:center;gap:14px;}
     .stats{font-size:.78rem;color:var(--text-muted);}
     .stat-value{color:var(--accent-purple-light);font-weight:700;}
+    .wheel-qr-block{display:flex;flex-direction:column;align-items:center;gap:8px;margin-top:8px;}
+    .wheel-qr-img{padding:10px;background:#fff;border-radius:12px;box-shadow:0 0 28px rgba(124,58,237,.45);}
+    .wheel-qr-label{font-size:.65rem;color:var(--text-muted);text-align:center;max-width:280px;word-break:break-all;}
     /* SIDEBAR */
     .sidebar{background:var(--bg-secondary);border-left:1px solid var(--border);padding:24px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;}
     .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;}
@@ -186,7 +189,6 @@
     </div>
     <div class="header-title">&#127921; Wheel of Names</div>
     <div class="header-actions">
-      <button class="btn btn-ghost" id="scanBtn">&#128247; Scan QR</button>
       <button class="btn btn-primary" id="presentBtn">&#x26F6; Present</button>
     </div>
   </header>
@@ -202,6 +204,10 @@
       <div class="spin-footer">
         <button id="spinBtn">&#127919; SPIN THE WHEEL</button>
         <div class="stats">Participants: <span class="stat-value" id="countStat">0</span></div>
+        <div class="wheel-qr-block">
+          <div class="wheel-qr-img"><canvas id="wheelQrCanvas"></canvas></div>
+          <div class="wheel-qr-label">&#128247; Scan to join &mdash; <span id="wheelQrUrl"></span></div>
+        </div>
       </div>
     </div>
 
@@ -469,8 +475,10 @@ Hannah</textarea>
   }
 
   document.getElementById('qrUrlLabel').textContent = joinUrl;
-  await makeQR(document.getElementById('qrCanvas'),     joinUrl, 220);
-  await makeQR(document.getElementById('presQrCanvas'), joinUrl, 100);
+  document.getElementById('wheelQrUrl').textContent = joinUrl;
+  await makeQR(document.getElementById('qrCanvas'),      joinUrl, 220);
+  await makeQR(document.getElementById('wheelQrCanvas'), joinUrl, 160);
+  await makeQR(document.getElementById('presQrCanvas'),  joinUrl, 100);
 
   if (addName) {
     const d = decodeURIComponent(addName);
@@ -478,11 +486,6 @@ Hannah</textarea>
     toast('\ud83d\udcf2 ' + d + ' wants to join! Click \u201c+ Add\u201d to add them.', 5000);
     history.replaceState({}, '', baseUrl);
   }
-
-  document.getElementById('scanBtn').addEventListener('click', () => {
-    const n = prompt('Enter name from QR scan (or type manually):');
-    if (n && n.trim()) { pending.push(n.trim()); renderPending(); toast('\ud83d\udcf2 ' + n.trim() + ' added to queue!'); }
-  });
 
   presentBtn.addEventListener('click', () => {
     inPres = true; presMode.classList.add('active');
