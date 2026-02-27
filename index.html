@@ -6,6 +6,8 @@
   <title>Wheel of Names – Global AI Community</title>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
   <style>
     :root {
       --bg-primary:   #060c1a;
@@ -134,6 +136,16 @@
     .join-ticket p{font-size:.75rem;color:var(--text-muted);margin-top:4px;}
     .join-qr-wrap{display:inline-block;padding:10px;background:#fff;border-radius:8px;margin:14px auto;}
     .join-hint{font-size:.8rem;color:var(--text-secondary);margin-top:10px;}
+    .join-error{display:none;margin-bottom:12px;padding:10px 16px;background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35);border-radius:8px;color:#f87171;font-size:.85rem;font-weight:600;}
+    .join-error.show{display:block;}
+    .join-waiting{text-align:center;padding:8px 0;}
+    .join-waiting .spinner{display:inline-block;width:36px;height:36px;border:3px solid rgba(124,58,237,.2);border-top-color:var(--accent-purple);border-radius:50%;animation:spin .8s linear infinite;margin-bottom:12px;}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .join-waiting h2{font-size:1.4rem;font-weight:800;background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;}
+    .join-waiting p{color:var(--text-secondary);font-size:.88rem;}
+    .fb-status{font-size:.62rem;padding:3px 8px;border-radius:4px;font-weight:600;display:inline-block;margin-top:6px;}
+    .fb-status.ok{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3);}
+    .fb-status.err{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);}
       @media(max-width:1060px){
       .main{grid-template-columns:1fr;}
       .sidebar{border-left:none;border-top:1px solid var(--border);}
@@ -165,14 +177,12 @@
     <div class="join-card">
       <span class="join-big-icon">&#127881;</span>
       <h1>You&rsquo;re in!</h1>
-      <div class="join-ticket">
-        <div class="join-ticket-name" id="joinTicketName"></div>
-        <p>Show this QR code to the presenter</p>
+      <div class="join-waiting">
+        <div class="spinner"></div>
+        <h2 id="joinTicketName"></h2>
+        <p>You&rsquo;re in the queue!<br>The presenter will add you to the wheel shortly.</p>
       </div>
-      <div class="join-qr-wrap">
-        <canvas id="joinQrCanvas"></canvas>
-      </div>
-      <p class="join-hint">The presenter scans this QR to add your name to the wheel. Good luck! &#127808;</p>
+      <p class="join-hint" style="margin-top:16px;">Good luck! &#127808;</p>
     </div>
   </div>
 </div>
@@ -240,6 +250,7 @@ Hannah</textarea>
           <div class="qr-img-wrap"><canvas id="qrCanvas"></canvas></div>
           <div class="qr-url" id="qrUrlLabel"></div>
           <div class="qr-cta">&#128247; Scan to add your name to the wheel</div>
+          <span class="fb-status" id="fbStatus"></span>
         </div>
       </div>
     </aside>
@@ -281,6 +292,26 @@ Hannah</textarea>
 <div class="toast" id="toast"></div>
 
 <script>
+// ─────────────────────────────────────────────────────────────────
+// FIREBASE CONFIG  ← replace with your project values
+// 1. https://console.firebase.google.com → New project → Add web app
+// 2. Build → Realtime Database → Create database (start in test mode)
+// 3. Paste your firebaseConfig object values below
+// ─────────────────────────────────────────────────────────────────
+window.FB_CFG = {
+  apiKey:            'REPLACE_ME',
+  authDomain:        'REPLACE_ME.firebaseapp.com',
+  databaseURL:       'https://REPLACE_ME-default-rtdb.firebaseio.com',
+  projectId:         'REPLACE_ME',
+  storageBucket:     'REPLACE_ME.appspot.com',
+  messagingSenderId: 'REPLACE_ME',
+  appId:             'REPLACE_ME'
+};
+const FB_READY = window.FB_CFG.apiKey !== 'REPLACE_ME';
+let fbDb = null;
+if (FB_READY) {
+  try { firebase.initializeApp(window.FB_CFG); fbDb = firebase.database(); } catch(e) { console.warn('Firebase init failed', e); }
+}
 (async () => {
   const params  = new URLSearchParams(window.location.search);
   const isJoin  = params.has('join');
@@ -297,21 +328,45 @@ Hannah</textarea>
     const btn = document.getElementById('joinSubmit');
     const fc  = document.getElementById('joinFormCard');
     const sw  = document.getElementById('joinSuccessWrap');
+    const errEl = Object.assign(document.createElement('p'), {className:'join-error', id:'joinErrorMsg'});
+    fc.insertBefore(errEl, btn);
     inp.focus();
+
     async function doJoin() {
       const name = inp.value.trim();
       if (!name) { inp.style.borderColor = '#ef4444'; return; }
-      document.getElementById('joinTicketName').textContent = name;
-      const ticketUrl = ghPagesUrl + '?add=' + encodeURIComponent(name);
+      errEl.classList.remove('show');
+      btn.disabled = true; btn.textContent = 'Adding…';
+
+      if (!FB_READY || !fbDb) {
+        // Fallback: show waiting card (manual flow)
+        document.getElementById('joinTicketName').textContent = name;
+        fc.style.display = 'none'; sw.classList.add('show');
+        return;
+      }
+
       try {
-        await QRCode.toCanvas(document.getElementById('joinQrCanvas'), ticketUrl, {
-          width: 200, margin: 1,
-          color: { dark: '#060c1a', light: '#ffffff' },
-          errorCorrectionLevel: 'H'
-        });
-      } catch(e) { console.warn(e); }
-      fc.style.display = 'none';
-      sw.classList.add('show');
+        const [namesSnap, pendingSnap] = await Promise.all([
+          fbDb.ref('wheel/names').get(),
+          fbDb.ref('wheel/pending').get()
+        ]);
+        const existing = (namesSnap.val() || '').split('\n').map(n => n.trim()).filter(Boolean);
+        const inQueue  = Object.values(pendingSnap.val() || {}).map(v => v.name);
+        const all = [...existing, ...inQueue];
+        if (all.some(n => n.toLowerCase() === name.toLowerCase())) {
+          errEl.textContent = '\u26a0\ufe0f \u201c' + name + '\u201d is already in the wheel or queue!';
+          errEl.classList.add('show');
+          btn.disabled = false; btn.textContent = 'Add me to the wheel \uD83C\uDFAF';
+          return;
+        }
+        await fbDb.ref('wheel/pending').push({ name, ts: Date.now() });
+        document.getElementById('joinTicketName').textContent = name;
+        fc.style.display = 'none'; sw.classList.add('show');
+      } catch(e) {
+        errEl.textContent = 'Error: ' + e.message;
+        errEl.classList.add('show');
+        btn.disabled = false; btn.textContent = 'Add me to the wheel \uD83C\uDFAF';
+      }
     }
     btn.addEventListener('click', doJoin);
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
@@ -365,7 +420,7 @@ Hannah</textarea>
   function nameExists(name) {
     const lc = name.toLowerCase();
     return names.some(n => n.toLowerCase() === lc) ||
-           pending.some(n => n.toLowerCase() === lc);
+           pending.some(p => (typeof p === 'string' ? p : p.name).toLowerCase() === lc);
   }
 
   const audio = new (window.AudioContext || window.webkitAudioContext)();
@@ -469,18 +524,30 @@ Hannah</textarea>
       pendingList.innerHTML = '<li class="empty-pending">No one yet &mdash; share the QR code below!</li>';
       return;
     }
-    pending.forEach((n, i) => {
-      const isDup = names.some(x => x.toLowerCase() === n.toLowerCase());
+    pending.forEach((item, i) => {
+      const name  = typeof item === 'string' ? item : item.name;
+      const fbKey = typeof item === 'object'  ? item.key  : null;
+      const isDup = names.some(x => x.toLowerCase() === name.toLowerCase());
       const li = document.createElement('li');
-      li.innerHTML = '<span>' + n + (isDup ? ' <span style="font-size:.65rem;color:#f59e0b;font-weight:700;">(already on wheel)</span>' : '') + '</span>'
+      li.innerHTML = '<span>' + name + (isDup ? ' <span style="font-size:.65rem;color:#f59e0b;font-weight:700;">(already on wheel)</span>' : '') + '</span>'
         + '<button class="add-btn" data-i="' + i + '"' + (isDup ? ' disabled style="opacity:.4;cursor:not-allowed;"' : '') + '>+ Add</button>';
       pendingList.appendChild(li);
     });
     pendingList.querySelectorAll('.add-btn:not([disabled])').forEach(b => {
-      b.addEventListener('click', () => {
-        const idx = +b.dataset.i, name = pending.splice(idx, 1)[0];
+      b.addEventListener('click', async () => {
+        const idx  = +b.dataset.i;
+        const item = pending[idx];
+        const name  = typeof item === 'string' ? item : item.name;
+        const fbKey = typeof item === 'object' ? item.key : null;
+        if (fbDb && fbKey) {
+          // Firebase: remove from pending; Firebase listener updates the array
+          await fbDb.ref('wheel/pending/' + fbKey).remove();
+        } else {
+          pending.splice(idx, 1);
+        }
         namesInput.value = (namesInput.value.trim() + '\n' + name).trim();
         parseNames(); draw(); renderPending(); broadcast();
+        if (fbDb) fbDb.ref('wheel/names').set(namesInput.value).catch(() => {});
         toast('\u2705 ' + name + ' added to the wheel!');
       });
     });
@@ -502,7 +569,42 @@ Hannah</textarea>
   await makeQR(document.getElementById('wheelQrCanvas'), joinUrl, 160);
   await makeQR(document.getElementById('presQrCanvas'),  joinUrl, 100);
 
-  if (addName) {
+  /* ── FIREBASE REALTIME LISTENERS ── */
+  const fbStatusEl = document.getElementById('fbStatus');
+  if (fbDb) {
+    fbStatusEl.textContent = '\u26a1 Firebase connected';
+    fbStatusEl.className = 'fb-status ok';
+    // Sync names across presenter tabs/devices
+    fbDb.ref('wheel/names').on('value', snap => {
+      const val = snap.val();
+      if (val !== null && val !== namesInput.value) {
+        namesInput.value = val; parseNames(); draw();
+      }
+    });
+    // Live pending: child_added fires for existing + new entries
+    fbDb.ref('wheel/pending').on('child_added', snap => {
+      if (!pending.find(p => p.key === snap.key)) {
+        const item = { key: snap.key, name: snap.val().name };
+        if (!nameExists(item.name)) {
+          pending.push(item); renderPending();
+          toast('\ud83d\udcf2 ' + item.name + ' wants to join!', 5000);
+        } else {
+          // Already on wheel — still show in list as duplicate
+          pending.push(item); renderPending();
+        }
+      }
+    });
+    fbDb.ref('wheel/pending').on('child_removed', snap => {
+      pending = pending.filter(p => p.key !== snap.key);
+      renderPending();
+    });
+  } else {
+    fbStatusEl.textContent = '\u26a0\ufe0f Firebase not configured (fallback mode)';
+    fbStatusEl.className = 'fb-status err';
+  }
+
+  // ?add=NAME fallback (used when Firebase is not configured)
+  if (addName && !fbDb) {
     const d = decodeURIComponent(addName);
     if (nameExists(d)) {
       toast('\u26a0\ufe0f ' + d + ' is already on the wheel or in the queue.', 5000);
@@ -528,17 +630,29 @@ Hannah</textarea>
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
   spinBtn.addEventListener('click', spin);
   presSpinBtn.addEventListener('click', spin);
-  updateBtn.addEventListener('click', () => { parseNames(); draw(); broadcast(); toast('\u2705 Wheel updated!'); });
+  updateBtn.addEventListener('click', () => {
+    parseNames(); draw(); broadcast();
+    if (fbDb) fbDb.ref('wheel/names').set(namesInput.value).catch(() => {});
+    toast('\u2705 Wheel updated!');
+  });
   shuffleBtn.addEventListener('click', () => {
     parseNames();
     for (let i = names.length-1; i > 0; i--) {
       const j = Math.floor(Math.random()*(i+1));
       [names[i], names[j]] = [names[j], names[i]];
     }
-    namesInput.value = names.join('\n'); draw(); broadcast(); toast('\ud83d\udd00 Names shuffled!');
+    namesInput.value = names.join('\n'); draw(); broadcast();
+    if (fbDb) fbDb.ref('wheel/names').set(namesInput.value).catch(() => {});
+    toast('\ud83d\udd00 Names shuffled!');
   });
   clearBtn.addEventListener('click', () => {
-    if (confirm('Clear all names?')) { namesInput.value = ''; parseNames(); draw(); broadcast(); }
+    if (confirm('Clear all names?')) {
+      namesInput.value = ''; parseNames(); draw(); broadcast();
+      if (fbDb) {
+        fbDb.ref('wheel/names').set('').catch(() => {});
+        fbDb.ref('wheel/pending').remove().catch(() => {});
+      }
+    }
   });
   winnerClose.addEventListener('click', () => winnerOverlay.classList.remove('show'));
   winnerOverlay.addEventListener('click', e => { if (e.target === winnerOverlay) winnerOverlay.classList.remove('show'); });
