@@ -615,8 +615,9 @@ try {
       if (!pending.find(p => p.key === snap.key)) {
         const item = { key: snap.key, name: snap.val().name };
         pending.push(item); renderPending();
-        // Auto-add to wheel (no manual approval) — skip duplicates
-        if (!nameExists(item.name)) {
+        // Auto-add to wheel (no manual approval) — skip duplicates already on the wheel
+        const alreadyOnWheel = names.some(n => n.toLowerCase() === item.name.toLowerCase());
+        if (!alreadyOnWheel) {
           namesInput.value = (namesInput.value.trim() + '\n' + item.name).trim();
           parseNames(); draw();
           if (!initialLoad) toast('\ud83d\udcf2 ' + item.name + ' joined via QR!', 4000);
