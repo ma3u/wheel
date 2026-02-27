@@ -611,6 +611,15 @@ try {
     let initialLoad = true;
     fbDb.ref('wheel/pending').once('value', () => { initialLoad = false; });
 
+    // Debounce the wheel/names write so rapid child_added events don't race
+    let namesSaveTimer = null;
+    function scheduleNamesSave() {
+      clearTimeout(namesSaveTimer);
+      namesSaveTimer = setTimeout(() => {
+        fbDb.ref('wheel/names').set(namesInput.value).catch(() => {});
+      }, 300);
+    }
+
     fbDb.ref('wheel/pending').on('child_added', snap => {
       if (!pending.find(p => p.key === snap.key)) {
         const item = { key: snap.key, name: snap.val().name };
@@ -621,7 +630,7 @@ try {
           namesInput.value = (namesInput.value.trim() + '\n' + item.name).trim();
           parseNames(); draw();
           if (!initialLoad) toast('\ud83d\udcf2 ' + item.name + ' joined via QR!', 4000);
-          fbDb.ref('wheel/names').set(namesInput.value).catch(() => {});
+          scheduleNamesSave();
           broadcast();
         }
         // Remove from pending queue (keep in local list for display)
