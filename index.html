@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wheel of Names – Global AI Community</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
+  <style>
+    :root {
+      --bg-primary:   #060c1a;
+      --bg-secondary: #0d1b30;
+      --bg-card:      #0f2040;
+      --accent-purple:       #7c3aed;
+      --accent-purple-light: #a855f7;
+      --accent-orange: #f59e0b;
+      --text-primary:   #f0f4ff;
+      --text-secondary: #94a3b8;
+      --text-muted:     #4a5568;
+      --border:      rgba(124,58,237,.22);
+      --border-glow: rgba(124,58,237,.55);
+      --grad-brand:  linear-gradient(135deg,#7c3aed,#ec4899);
+      --grad-wide:   linear-gradient(135deg,#4f46e5,#7c3aed,#ec4899);
+    }
+    *{margin:0;padding:0;box-sizing:border-box;}
+    body{font-family:'Inter','Segoe UI',system-ui,sans-serif;background:var(--bg-primary);color:var(--text-primary);min-height:100vh;}
+    /* HEADER */
+    .header{display:flex;align-items:center;justify-content:space-between;padding:14px 32px;background:rgba(6,12,26,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px);position:sticky;top:0;z-index:50;}
+    .logo{display:flex;align-items:center;gap:12px;}
+    .logo-icon{width:36px;height:36px;border-radius:9px;background:var(--grad-brand);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;}
+    .logo-name{font-size:.85rem;font-weight:700;letter-spacing:.02em;}
+    .logo-sub{font-size:.65rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.06em;}
+    .header-title{font-size:1rem;font-weight:700;background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .header-actions{display:flex;gap:8px;}
+    .btn{padding:8px 16px;border:none;border-radius:8px;font-size:.82rem;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;}
+    .btn-primary{background:var(--grad-brand);color:#fff;box-shadow:0 0 16px rgba(124,58,237,.3);}
+    .btn-primary:hover{box-shadow:0 0 26px rgba(124,58,237,.55);transform:translateY(-1px);}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border);}
+    .btn-ghost:hover{color:var(--text-primary);background:rgba(124,58,237,.1);border-color:var(--border-glow);}
+    /* LAYOUT */
+    .main{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 65px);}
+    /* WHEEL */
+    .wheel-section{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;position:relative;}
+    .wheel-section::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(124,58,237,.06) 0%,transparent 70%);}
+    .event-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin-bottom:28px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);border-radius:20px;font-size:.68rem;font-weight:700;color:var(--accent-purple-light);text-transform:uppercase;letter-spacing:.1em;}
+    .wheel-container{position:relative;width:480px;height:480px;margin-bottom:32px;}
+    #wheelCanvas{width:480px;height:480px;border-radius:50%;filter:drop-shadow(0 0 40px rgba(124,58,237,.35));}
+    .pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:40px solid var(--accent-orange);filter:drop-shadow(0 3px 8px rgba(0,0,0,.5));z-index:2;}
+    .center-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:radial-gradient(circle,#162840 0%,#0d1b30 100%);border:3px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:22px;z-index:2;}
+    #spinBtn{padding:18px 64px;font-size:1.2rem;font-weight:800;border:none;border-radius:50px;background:var(--grad-brand);color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 0 36px rgba(124,58,237,.45);transition:all .2s;}
+    #spinBtn:hover{transform:scale(1.06);box-shadow:0 0 56px rgba(124,58,237,.65);}
+    #spinBtn:active{transform:scale(.97);}
+    #spinBtn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none;}
+    .spin-footer{display:flex;flex-direction:column;align-items:center;gap:14px;}
+    .stats{font-size:.78rem;color:var(--text-muted);}
+    .stat-value{color:var(--accent-purple-light);font-weight:700;}
+    /* SIDEBAR */
+    .sidebar{background:var(--bg-secondary);border-left:1px solid var(--border);padding:24px;display:flex;flex-direction:column;gap:20px;overflow-y:auto;}
+    .panel{background:var(--bg-card);border:1px solid var(--border);border-radius:12px;padding:18px;}
+    .panel-title{font-size:.68rem;font-weight:700;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.1em;margin-bottom:14px;display:flex;align-items:center;gap:7px;}
+    .panel-title .icon{display:inline-flex;align-items:center;justify-content:center;width:20px;height:20px;background:rgba(124,58,237,.2);border-radius:4px;font-size:11px;}
+    #namesInput{width:100%;height:200px;padding:12px 14px;border:1px solid var(--border);border-radius:8px;background:var(--bg-primary);color:var(--text-primary);font-size:.88rem;line-height:1.75;resize:vertical;font-family:inherit;transition:border-color .2s;}
+    #namesInput:focus{outline:none;border-color:var(--accent-purple);box-shadow:0 0 0 3px rgba(124,58,237,.15);}
+    .sidebar-actions{display:flex;gap:8px;margin-top:10px;}
+    .sidebar-actions .btn{flex:1;padding:9px 6px;font-size:.78rem;}
+    #updateBtn{background:var(--accent-purple);color:#fff;}
+    #updateBtn:hover{background:var(--accent-purple-light);}
+    #shuffleBtn{background:var(--bg-primary);color:var(--text-secondary);border:1px solid var(--border);}
+    #shuffleBtn:hover{background:rgba(124,58,237,.1);color:var(--text-primary);}
+    #clearBtn{background:#1a0808;color:#ef4444;border:1px solid rgba(239,68,68,.25);}
+    #clearBtn:hover{background:rgba(239,68,68,.12);}
+    #pendingList{list-style:none;display:flex;flex-direction:column;gap:6px;max-height:120px;overflow-y:auto;}
+    #pendingList li{display:flex;align-items:center;justify-content:space-between;padding:7px 10px;background:rgba(124,58,237,.08);border:1px solid rgba(124,58,237,.22);border-radius:6px;font-size:.82rem;}
+    #pendingList li .add-btn{background:var(--accent-purple);color:#fff;border:none;border-radius:4px;padding:3px 9px;font-size:.7rem;cursor:pointer;font-family:inherit;}
+    #pendingList li .add-btn:hover{background:var(--accent-purple-light);}
+    .empty-pending{font-size:.78rem;color:var(--text-muted);text-align:center;padding:6px 0;}
+    .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
+    .qr-img-wrap{padding:10px;background:#fff;border-radius:10px;}
+    .qr-url{font-size:.62rem;color:var(--text-muted);word-break:break-all;text-align:center;max-width:220px;}
+    .qr-cta{font-size:.74rem;color:var(--accent-purple-light);font-weight:600;text-align:center;}
+    /* PRESENTATION */
+    .pres-mode{display:none;position:fixed;inset:0;background:var(--bg-primary);z-index:200;flex-direction:column;align-items:center;justify-content:center;}
+    .pres-mode.active{display:flex;}
+    .pres-header{position:absolute;top:0;left:0;right:0;padding:20px 32px;display:flex;align-items:center;justify-content:space-between;}
+    .pres-logo{display:flex;align-items:center;gap:10px;}
+    .pres-logo-text{font-size:.78rem;font-weight:700;color:var(--text-secondary);}
+    .pres-close{background:transparent;border:1px solid var(--border);color:var(--text-secondary);padding:7px 14px;border-radius:8px;cursor:pointer;font-family:inherit;font-size:.78rem;}
+    .pres-close:hover{color:var(--text-primary);background:rgba(255,255,255,.05);}
+    .pres-wheel{position:relative;width:640px;height:640px;margin-bottom:36px;}
+    #presCanvas{width:640px;height:640px;border-radius:50%;filter:drop-shadow(0 0 70px rgba(124,58,237,.55));}
+    .pres-spin-btn{padding:22px 96px;font-size:1.5rem;font-weight:900;border:none;border-radius:50px;background:var(--grad-brand);color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.08em;text-transform:uppercase;box-shadow:0 0 60px rgba(124,58,237,.55);transition:all .2s;}
+    .pres-spin-btn:hover{transform:scale(1.05);box-shadow:0 0 90px rgba(124,58,237,.75);}
+    .pres-spin-btn:active{transform:scale(.97);}
+    .pres-spin-btn:disabled{opacity:.45;cursor:not-allowed;transform:none!important;box-shadow:none;}
+    .pres-qr{position:absolute;bottom:28px;right:28px;background:var(--bg-card);border:1px solid var(--border);border-radius:14px;padding:14px;text-align:center;}
+    .pres-qr p{font-size:.6rem;color:var(--accent-purple-light);font-weight:700;text-transform:uppercase;letter-spacing:.08em;margin-top:8px;}
+    .pres-count{position:absolute;bottom:36px;left:36px;font-size:1rem;color:var(--text-secondary);font-weight:600;}
+    .pres-count span{color:var(--accent-purple-light);font-weight:900;font-size:1.3rem;}
+    /* WINNER */
+    .winner-overlay{display:none;position:fixed;inset:0;background:rgba(6,12,26,.88);backdrop-filter:blur(10px);z-index:350;justify-content:center;align-items:center;}
+    .winner-overlay.show{display:flex;}
+    .winner-card{background:var(--bg-card);border:2px solid rgba(124,58,237,.45);border-radius:24px;padding:60px 80px;text-align:center;animation:popIn .45s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 100px rgba(124,58,237,.35);}
+    .winner-label{font-size:.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.18em;font-weight:700;margin-bottom:14px;}
+    .winner-emoji{font-size:4rem;display:block;margin-bottom:12px;}
+    .winner-name{font-size:3.8rem;font-weight:900;line-height:1.05;background:var(--grad-wide);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:36px;}
+    .winner-close{padding:13px 40px;border-radius:50px;background:rgba(124,58,237,.2);color:var(--accent-purple-light);font-size:.95rem;font-weight:600;cursor:pointer;font-family:inherit;border:1px solid rgba(124,58,237,.35);transition:all .2s;}
+    .winner-close:hover{background:rgba(124,58,237,.35);color:#fff;}
+    @keyframes popIn{0%{transform:scale(.55) translateY(30px);opacity:0}100%{transform:scale(1) translateY(0);opacity:1}}
+    .confetti{position:fixed;z-index:360;animation:fall 3s ease-in forwards;border-radius:2px;}
+    @keyframes fall{0%{opacity:1;transform:translateY(0) rotate(0deg)}100%{opacity:0;transform:translateY(105vh) rotate(720deg)}}
+    .toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--bg-card);border:1px solid rgba(124,58,237,.4);border-radius:12px;padding:13px 24px;font-size:.88rem;font-weight:600;color:var(--accent-purple-light);box-shadow:0 8px 40px rgba(0,0,0,.5);z-index:500;transition:transform .4s cubic-bezier(.34,1.56,.64,1);}
+    .toast.show{transform:translateX(-50%) translateY(0);}
+    /* JOIN PAGE */
+    .join-page{display:none;min-height:100vh;background:var(--bg-primary);flex-direction:column;align-items:center;justify-content:center;padding:28px;}
+    .join-page.active{display:flex;}
+    .join-brand{display:flex;align-items:center;gap:12px;margin-bottom:36px;}
+    .join-brand .logo-icon{width:44px;height:44px;font-size:22px;border-radius:11px;}
+    .join-card{background:var(--bg-card);border:1px solid var(--border);border-radius:20px;padding:44px 40px;text-align:center;max-width:420px;width:100%;box-shadow:0 0 80px rgba(124,58,237,.2);}
+    .join-big-icon{font-size:3.5rem;display:block;margin-bottom:14px;}
+    .join-card h1{font-size:1.85rem;font-weight:900;margin-bottom:8px;background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .join-card .subtitle{color:var(--text-secondary);font-size:.88rem;margin-bottom:28px;}
+    .join-input{width:100%;padding:16px 20px;margin-bottom:16px;border:2px solid var(--border);border-radius:12px;background:var(--bg-primary);color:var(--text-primary);font-size:1.1rem;text-align:center;font-family:inherit;transition:border-color .2s;}
+    .join-input:focus{outline:none;border-color:var(--accent-purple);box-shadow:0 0 0 4px rgba(124,58,237,.15);}
+    .join-submit{width:100%;padding:16px;border:none;border-radius:12px;background:var(--grad-brand);color:#fff;font-size:1rem;font-weight:700;cursor:pointer;font-family:inherit;transition:all .2s;box-shadow:0 0 24px rgba(124,58,237,.3);}
+    .join-submit:hover{box-shadow:0 0 44px rgba(124,58,237,.55);transform:translateY(-2px);}
+    .join-success-wrap{display:none;}
+    .join-success-wrap.show{display:block;}
+    .join-ticket{background:rgba(124,58,237,.1);border:1px solid rgba(124,58,237,.3);border-radius:12px;padding:20px;margin:20px 0;}
+    .join-ticket-name{font-size:2rem;font-weight:900;background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;}
+    .join-ticket p{font-size:.75rem;color:var(--text-muted);margin-top:4px;}
+    .join-qr-wrap{display:inline-block;padding:10px;background:#fff;border-radius:8px;margin:14px auto;}
+    .join-hint{font-size:.8rem;color:var(--text-secondary);margin-top:10px;}
+    @media(max-width:900px){
+      .main{grid-template-columns:1fr;}
+      .sidebar{border-left:none;border-top:1px solid var(--border);}
+      .wheel-container{width:320px;height:320px;}
+      #wheelCanvas{width:320px;height:320px;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- MOBILE JOIN PAGE -->
+<div class="join-page" id="joinPage">
+  <div class="join-brand">
+    <div class="logo-icon">&#127758;</div>
+    <div>
+      <div class="logo-name">Global AI Community</div>
+      <div class="logo-sub">Meetup Wheel</div>
+    </div>
+  </div>
+  <div class="join-card" id="joinFormCard">
+    <span class="join-big-icon">&#127921;</span>
+    <h1>Join the Wheel!</h1>
+    <p class="subtitle">Enter your name to be spun in the meetup wheel of names.</p>
+    <input class="join-input" id="joinInput" type="text" placeholder="Your name&hellip;"
+           autocomplete="off" autocapitalize="words" autocorrect="off">
+    <button class="join-submit" id="joinSubmit">Add me to the wheel &#127919;</button>
+  </div>
+  <div class="join-success-wrap" id="joinSuccessWrap">
+    <div class="join-card">
+      <span class="join-big-icon">&#127881;</span>
+      <h1>You&rsquo;re in!</h1>
+      <div class="join-ticket">
+        <div class="join-ticket-name" id="joinTicketName"></div>
+        <p>Show this QR code to the presenter</p>
+      </div>
+      <div class="join-qr-wrap">
+        <canvas id="joinQrCanvas"></canvas>
+      </div>
+      <p class="join-hint">The presenter scans this QR to add your name to the wheel. Good luck! &#127808;</p>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="mainApp">
+  <header class="header">
+    <div class="logo">
+      <div class="logo-icon">&#127758;</div>
+      <div>
+        <div class="logo-name">Global AI Community</div>
+        <div class="logo-sub">Meetup Edition</div>
+      </div>
+    </div>
+    <div class="header-title">&#127921; Wheel of Names</div>
+    <div class="header-actions">
+      <button class="btn btn-ghost" id="scanBtn">&#128247; Scan QR</button>
+      <button class="btn btn-primary" id="presentBtn">&#x26F6; Present</button>
+    </div>
+  </header>
+
+  <div class="main">
+    <div class="wheel-section">
+      <div class="event-badge">&#127758; Global AI Community &middot; Meetup</div>
+      <div class="wheel-container">
+        <div class="pointer"></div>
+        <canvas id="wheelCanvas" width="960" height="960"></canvas>
+        <div class="center-circle">&#127775;</div>
+      </div>
+      <div class="spin-footer">
+        <button id="spinBtn">&#127919; SPIN THE WHEEL</button>
+        <div class="stats">Participants: <span class="stat-value" id="countStat">0</span></div>
+      </div>
+    </div>
+
+    <aside class="sidebar">
+      <div class="panel">
+        <div class="panel-title"><span class="icon">&#128101;</span> Participants</div>
+        <textarea id="namesInput" placeholder="Enter names, one per line&hellip;">Alice
+Bob
+Charlie
+Diana
+Ethan
+Fiona
+George
+Hannah</textarea>
+        <div class="sidebar-actions">
+          <button class="btn" id="updateBtn">&#10003; Update</button>
+          <button class="btn" id="shuffleBtn">&#128256; Shuffle</button>
+          <button class="btn" id="clearBtn">&#10005; Clear</button>
+        </div>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="icon">&#128242;</span> Joined via QR</div>
+        <ul id="pendingList">
+          <li class="empty-pending">No one yet &mdash; share the QR code below!</li>
+        </ul>
+      </div>
+      <div class="panel">
+        <div class="panel-title"><span class="icon">&#128241;</span> Join via Mobile</div>
+        <div class="qr-wrap">
+          <div class="qr-img-wrap"><canvas id="qrCanvas"></canvas></div>
+          <div class="qr-url" id="qrUrlLabel"></div>
+          <div class="qr-cta">Scan to add your name to the wheel</div>
+        </div>
+      </div>
+    </aside>
+  </div>
+</div>
+
+<!-- PRESENTATION MODE -->
+<div class="pres-mode" id="presMode">
+  <div class="pres-header">
+    <div class="pres-logo">
+      <div class="logo-icon">&#127758;</div>
+      <span class="pres-logo-text">Global AI Community &middot; Meetup</span>
+    </div>
+    <button class="pres-close" id="presClose">&#10005; Exit (Esc)</button>
+  </div>
+  <div class="pres-wheel">
+    <div class="pointer"></div>
+    <canvas id="presCanvas" width="1280" height="1280"></canvas>
+    <div class="center-circle" style="width:70px;height:70px;font-size:28px;">&#127775;</div>
+  </div>
+  <button class="pres-spin-btn" id="presSpinBtn">&#127919; SPIN THE WHEEL</button>
+  <div class="pres-count">Participants: <span id="presCount">0</span></div>
+  <div class="pres-qr">
+    <div class="qr-img-wrap" style="padding:8px;"><canvas id="presQrCanvas"></canvas></div>
+    <p>&#128241; Scan to join</p>
+  </div>
+</div>
+
+<!-- WINNER OVERLAY -->
+<div class="winner-overlay" id="winnerOverlay">
+  <div class="winner-card">
+    <div class="winner-label">&#127881; And the winner is&hellip;</div>
+    <span class="winner-emoji">&#127942;</span>
+    <div class="winner-name" id="winnerName"></div>
+    <button class="winner-close" id="winnerClose">Continue &rarr;</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(async () => {
+  const params  = new URLSearchParams(window.location.search);
+  const isJoin  = params.has('join');
+  const addName = params.get('add');
+  const baseUrl = location.origin + location.pathname;
+  const joinUrl = baseUrl + '?join';
+
+  /* ── MOBILE JOIN MODE ── */
+  if (isJoin) {
+    document.getElementById('joinPage').classList.add('active');
+    document.getElementById('mainApp').style.display = 'none';
+    const inp = document.getElementById('joinInput');
+    const btn = document.getElementById('joinSubmit');
+    const fc  = document.getElementById('joinFormCard');
+    const sw  = document.getElementById('joinSuccessWrap');
+    inp.focus();
+    async function doJoin() {
+      const name = inp.value.trim();
+      if (!name) { inp.style.borderColor = '#ef4444'; return; }
+      document.getElementById('joinTicketName').textContent = name;
+      const ticketUrl = baseUrl + '?add=' + encodeURIComponent(name);
+      try {
+        await QRCode.toCanvas(document.getElementById('joinQrCanvas'), ticketUrl, {
+          width: 200, margin: 1,
+          color: { dark: '#060c1a', light: '#ffffff' },
+          errorCorrectionLevel: 'H'
+        });
+      } catch(e) { console.warn(e); }
+      fc.style.display = 'none';
+      sw.classList.add('show');
+    }
+    btn.addEventListener('click', doJoin);
+    inp.addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+    return;
+  }
+
+  /* ── MAIN APP ── */
+  const wCanvas = document.getElementById('wheelCanvas');
+  const wCtx    = wCanvas.getContext('2d');
+  const pCanvas = document.getElementById('presCanvas');
+  const pCtx    = pCanvas.getContext('2d');
+  const spinBtn     = document.getElementById('spinBtn');
+  const presSpinBtn = document.getElementById('presSpinBtn');
+  const namesInput  = document.getElementById('namesInput');
+  const updateBtn   = document.getElementById('updateBtn');
+  const shuffleBtn  = document.getElementById('shuffleBtn');
+  const clearBtn    = document.getElementById('clearBtn');
+  const presentBtn  = document.getElementById('presentBtn');
+  const presClose   = document.getElementById('presClose');
+  const presMode    = document.getElementById('presMode');
+  const winnerOverlay = document.getElementById('winnerOverlay');
+  const winnerNameEl  = document.getElementById('winnerName');
+  const winnerClose   = document.getElementById('winnerClose');
+  const countStat   = document.getElementById('countStat');
+  const presCount   = document.getElementById('presCount');
+  const pendingList = document.getElementById('pendingList');
+  const toastEl     = document.getElementById('toast');
+
+  const COLORS = [
+    '#7c3aed','#ec4899','#06b6d4','#f59e0b',
+    '#10b981','#f97316','#3b82f6','#8b5cf6',
+    '#ef4444','#14b8a6','#d946ef','#eab308',
+    '#6366f1','#22d3ee','#e11d48','#0ea5e9'
+  ];
+  let names = [], rotation = 0, spinning = false, inPres = false, pending = [];
+
+  const audio = new (window.AudioContext || window.webkitAudioContext)();
+  function tick() {
+    const o = audio.createOscillator(), g = audio.createGain();
+    o.connect(g); g.connect(audio.destination);
+    o.type = 'sine'; o.frequency.value = 2000;
+    g.gain.setValueAtTime(0.055, audio.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.05);
+    o.start(); o.stop(audio.currentTime + 0.05);
+  }
+
+  function parseNames() {
+    names = namesInput.value.split('\n').map(n => n.trim()).filter(Boolean);
+    if (!names.length) names = ['(empty)'];
+    const n = names.length === 1 && names[0] === '(empty)' ? 0 : names.length;
+    countStat.textContent = presCount.textContent = n;
+  }
+
+  function drawOn(ctx, canvas) {
+    const W = canvas.width, cx = W/2, cy = W/2, R = W/2 - 14;
+    ctx.clearRect(0, 0, W, W);
+    const slice = (2 * Math.PI) / names.length;
+    names.forEach((name, i) => {
+      const s = rotation + i * slice, e = s + slice;
+      ctx.beginPath(); ctx.moveTo(cx, cy); ctx.arc(cx, cy, R, s, e); ctx.closePath();
+      ctx.fillStyle = COLORS[i % COLORS.length]; ctx.fill();
+      ctx.strokeStyle = 'rgba(0,0,0,.12)'; ctx.lineWidth = 3; ctx.stroke();
+      ctx.save(); ctx.translate(cx, cy); ctx.rotate(s + slice/2);
+      ctx.textAlign = 'right'; ctx.fillStyle = '#fff';
+      ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 5;
+      const fs = Math.max(W/70, Math.min(W/26, W * 1.4 / Math.max(names.length, 1) / 9));
+      ctx.font = '700 ' + fs + 'px Inter,system-ui,sans-serif';
+      let txt = name;
+      while (ctx.measureText(txt).width > R * 0.52 && txt.length > 1) txt = txt.slice(0, -1);
+      if (txt !== name) txt += '\u2026';
+      ctx.fillText(txt, R - 28, fs / 3);
+      ctx.shadowBlur = 0; ctx.restore();
+    });
+    ctx.beginPath(); ctx.arc(cx, cy, R, 0, 2 * Math.PI);
+    ctx.strokeStyle = 'rgba(124,58,237,.5)'; ctx.lineWidth = 8; ctx.stroke();
+  }
+
+  function draw() { drawOn(wCtx, wCanvas); if (inPres) drawOn(pCtx, pCanvas); }
+
+  function winIdx() {
+    const sl = (2 * Math.PI) / names.length;
+    let a = (-Math.PI / 2 - rotation) % (2 * Math.PI);
+    if (a < 0) a += 2 * Math.PI;
+    return Math.floor(a / sl) % names.length;
+  }
+
+  function spin() {
+    if (spinning || names.length <= 1) return;
+    spinning = true; spinBtn.disabled = presSpinBtn.disabled = true;
+    if (audio.state === 'suspended') audio.resume();
+    const total = (6 + Math.random() * 6) * 2 * Math.PI + Math.random() * 2 * Math.PI;
+    const start = rotation, dur = 4500 + Math.random() * 2000, t0 = performance.now();
+    let last = -1;
+    function frame(now) {
+      const t = Math.min((now - t0) / dur, 1), ease = 1 - Math.pow(1 - t, 4);
+      rotation = start + total * ease;
+      const sl = (2 * Math.PI) / names.length;
+      const si = Math.floor(((rotation % (2 * Math.PI)) + 2 * Math.PI) / sl) % names.length;
+      if (si !== last) { last = si; tick(); }
+      draw();
+      if (t < 1) { requestAnimationFrame(frame); }
+      else { spinning = false; spinBtn.disabled = presSpinBtn.disabled = false; showWinner(names[winIdx()]); }
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function showWinner(name) {
+    winnerNameEl.textContent = name;
+    winnerOverlay.classList.add('show');
+    rainConfetti();
+  }
+
+  function rainConfetti() {
+    const C = ['#7c3aed','#ec4899','#06b6d4','#f59e0b','#10b981','#f97316'];
+    for (let i = 0; i < 110; i++) {
+      const el = document.createElement('div');
+      el.className = 'confetti';
+      el.style.cssText = 'left:' + Math.random()*100 + 'vw;top:-8px;background:' + C[i%C.length]
+        + ';width:' + (6+Math.random()*10) + 'px;height:' + (6+Math.random()*10)
+        + 'px;border-radius:' + (Math.random()>.5?'50%':'2px')
+        + ';animation-delay:' + Math.random()*.9 + 's;animation-duration:' + (2.5+Math.random()*2) + 's;';
+      document.body.appendChild(el);
+      setTimeout(() => el.remove(), 5500);
+    }
+  }
+
+  function toast(msg, ms = 3200) {
+    toastEl.textContent = msg; toastEl.classList.add('show');
+    setTimeout(() => toastEl.classList.remove('show'), ms);
+  }
+
+  function renderPending() {
+    pendingList.innerHTML = '';
+    if (!pending.length) {
+      pendingList.innerHTML = '<li class="empty-pending">No one yet &mdash; share the QR code below!</li>';
+      return;
+    }
+    pending.forEach((n, i) => {
+      const li = document.createElement('li');
+      li.innerHTML = '<span>' + n + '</span><button class="add-btn" data-i="' + i + '">+ Add</button>';
+      pendingList.appendChild(li);
+    });
+    pendingList.querySelectorAll('.add-btn').forEach(b => {
+      b.addEventListener('click', () => {
+        const idx = +b.dataset.i, name = pending.splice(idx, 1)[0];
+        namesInput.value = (namesInput.value.trim() + '\n' + name).trim();
+        parseNames(); draw(); renderPending();
+        toast('\u2705 ' + name + ' added to the wheel!');
+      });
+    });
+  }
+
+  async function makeQR(canvas, url, size) {
+    try {
+      await QRCode.toCanvas(canvas, url, {
+        width: size, margin: 1,
+        color: { dark: '#060c1a', light: '#fff' },
+        errorCorrectionLevel: 'M'
+      });
+    } catch(e) {}
+  }
+
+  document.getElementById('qrUrlLabel').textContent = joinUrl;
+  await makeQR(document.getElementById('qrCanvas'),     joinUrl, 140);
+  await makeQR(document.getElementById('presQrCanvas'), joinUrl, 100);
+
+  if (addName) {
+    const d = decodeURIComponent(addName);
+    pending.push(d); renderPending();
+    toast('\ud83d\udcf2 ' + d + ' wants to join! Click \u201c+ Add\u201d to add them.', 5000);
+    history.replaceState({}, '', baseUrl);
+  }
+
+  document.getElementById('scanBtn').addEventListener('click', () => {
+    const n = prompt('Enter name from QR scan (or type manually):');
+    if (n && n.trim()) { pending.push(n.trim()); renderPending(); toast('\ud83d\udcf2 ' + n.trim() + ' added to queue!'); }
+  });
+
+  presentBtn.addEventListener('click', () => {
+    inPres = true; presMode.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    presMode.requestFullscreen?.().catch(() => {});
+    draw();
+  });
+  function exitPres() {
+    inPres = false; presMode.classList.remove('active');
+    document.body.style.overflow = '';
+    document.exitFullscreen?.().catch(() => {});
+  }
+  presClose.addEventListener('click', exitPres);
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
+  spinBtn.addEventListener('click', spin);
+  presSpinBtn.addEventListener('click', spin);
+  updateBtn.addEventListener('click', () => { parseNames(); draw(); toast('\u2705 Wheel updated!'); });
+  shuffleBtn.addEventListener('click', () => {
+    parseNames();
+    for (let i = names.length-1; i > 0; i--) {
+      const j = Math.floor(Math.random()*(i+1));
+      [names[i], names[j]] = [names[j], names[i]];
+    }
+    namesInput.value = names.join('\n'); draw(); toast('\ud83d\udd00 Names shuffled!');
+  });
+  clearBtn.addEventListener('click', () => {
+    if (confirm('Clear all names?')) { namesInput.value = ''; parseNames(); draw(); }
+  });
+  winnerClose.addEventListener('click', () => winnerOverlay.classList.remove('show'));
+  winnerOverlay.addEventListener('click', e => { if (e.target === winnerOverlay) winnerOverlay.classList.remove('show'); });
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && document.activeElement !== namesInput) spin();
+    if (e.key === 'Escape') { winnerOverlay.classList.remove('show'); exitPres(); }
+    if ((e.key === 'f' || e.key === 'F') && document.activeElement !== namesInput) presentBtn.click();
+  });
+
+  parseNames(); renderPending(); draw();
+})();
+</script>
+</body>
+</html>
