@@ -38,13 +38,13 @@
     .btn-ghost{background:transparent;color:var(--text-secondary);border:1px solid var(--border);}
     .btn-ghost:hover{color:var(--text-primary);background:rgba(124,58,237,.1);border-color:var(--border-glow);}
     /* LAYOUT */
-    .main{display:grid;grid-template-columns:1fr 360px;min-height:calc(100vh - 65px);}
+    .main{display:grid;grid-template-columns:1fr 400px;min-height:calc(100vh - 65px);}
     /* WHEEL */
     .wheel-section{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:48px 32px;position:relative;}
     .wheel-section::before{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 60% 60% at 50% 50%,rgba(124,58,237,.06) 0%,transparent 70%);}
     .event-badge{display:inline-flex;align-items:center;gap:6px;padding:4px 14px;margin-bottom:28px;background:rgba(124,58,237,.12);border:1px solid rgba(124,58,237,.3);border-radius:20px;font-size:.68rem;font-weight:700;color:var(--accent-purple-light);text-transform:uppercase;letter-spacing:.1em;}
-    .wheel-container{position:relative;width:480px;height:480px;margin-bottom:32px;}
-    #wheelCanvas{width:480px;height:480px;border-radius:50%;filter:drop-shadow(0 0 40px rgba(124,58,237,.35));}
+    .wheel-container{position:relative;width:600px;height:600px;margin-bottom:32px;}
+    #wheelCanvas{width:600px;height:600px;border-radius:50%;filter:drop-shadow(0 0 50px rgba(124,58,237,.45));}
     .pointer{position:absolute;top:-20px;left:50%;transform:translateX(-50%);width:0;height:0;border-left:20px solid transparent;border-right:20px solid transparent;border-top:40px solid var(--accent-orange);filter:drop-shadow(0 3px 8px rgba(0,0,0,.5));z-index:2;}
     .center-circle{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:radial-gradient(circle,#162840 0%,#0d1b30 100%);border:3px solid rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-size:22px;z-index:2;}
     #spinBtn{padding:18px 64px;font-size:1.2rem;font-weight:800;border:none;border-radius:50px;background:var(--grad-brand);color:#fff;cursor:pointer;font-family:inherit;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 0 36px rgba(124,58,237,.45);transition:all .2s;}
@@ -74,10 +74,11 @@
     #pendingList li .add-btn{background:var(--accent-purple);color:#fff;border:none;border-radius:4px;padding:3px 9px;font-size:.7rem;cursor:pointer;font-family:inherit;}
     #pendingList li .add-btn:hover{background:var(--accent-purple-light);}
     .empty-pending{font-size:.78rem;color:var(--text-muted);text-align:center;padding:6px 0;}
-    .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;}
-    .qr-img-wrap{padding:10px;background:#fff;border-radius:10px;}
-    .qr-url{font-size:.62rem;color:var(--text-muted);word-break:break-all;text-align:center;max-width:220px;}
-    .qr-cta{font-size:.74rem;color:var(--accent-purple-light);font-weight:600;text-align:center;}
+    .qr-wrap{display:flex;flex-direction:column;align-items:center;gap:12px;}
+    .qr-img-wrap{padding:12px;background:#fff;border-radius:14px;box-shadow:0 0 30px rgba(124,58,237,.4);}
+    .qr-url{font-size:.65rem;color:var(--text-muted);word-break:break-all;text-align:center;max-width:260px;}
+    .qr-cta{font-size:.82rem;color:var(--accent-purple-light);font-weight:700;text-align:center;letter-spacing:.02em;}
+    .panel-qr{border-color:rgba(124,58,237,.5)!important;background:linear-gradient(160deg,#0f2040,#160d2e)!important;box-shadow:0 0 28px rgba(124,58,237,.18);}
     /* PRESENTATION */
     .pres-mode{display:none;position:fixed;inset:0;background:var(--bg-primary);z-index:200;flex-direction:column;align-items:center;justify-content:center;}
     .pres-mode.active{display:flex;}
@@ -130,11 +131,11 @@
     .join-ticket p{font-size:.75rem;color:var(--text-muted);margin-top:4px;}
     .join-qr-wrap{display:inline-block;padding:10px;background:#fff;border-radius:8px;margin:14px auto;}
     .join-hint{font-size:.8rem;color:var(--text-secondary);margin-top:10px;}
-    @media(max-width:900px){
+      @media(max-width:1060px){
       .main{grid-template-columns:1fr;}
       .sidebar{border-left:none;border-top:1px solid var(--border);}
-      .wheel-container{width:320px;height:320px;}
-      #wheelCanvas{width:320px;height:320px;}
+      .wheel-container{width:360px;height:360px;}
+      #wheelCanvas{width:360px;height:360px;}
     }
   </style>
 </head>
@@ -195,7 +196,7 @@
       <div class="event-badge">&#127758; Global AI Community &middot; Meetup</div>
       <div class="wheel-container">
         <div class="pointer"></div>
-        <canvas id="wheelCanvas" width="960" height="960"></canvas>
+        <canvas id="wheelCanvas" width="1200" height="1200"></canvas>
         <div class="center-circle">&#127775;</div>
       </div>
       <div class="spin-footer">
@@ -227,12 +228,12 @@ Hannah</textarea>
           <li class="empty-pending">No one yet &mdash; share the QR code below!</li>
         </ul>
       </div>
-      <div class="panel">
+      <div class="panel panel-qr">
         <div class="panel-title"><span class="icon">&#128241;</span> Join via Mobile</div>
         <div class="qr-wrap">
           <div class="qr-img-wrap"><canvas id="qrCanvas"></canvas></div>
           <div class="qr-url" id="qrUrlLabel"></div>
-          <div class="qr-cta">Scan to add your name to the wheel</div>
+          <div class="qr-cta">&#128247; Scan to add your name to the wheel</div>
         </div>
       </div>
     </aside>
@@ -468,7 +469,7 @@ Hannah</textarea>
   }
 
   document.getElementById('qrUrlLabel').textContent = joinUrl;
-  await makeQR(document.getElementById('qrCanvas'),     joinUrl, 140);
+  await makeQR(document.getElementById('qrCanvas'),     joinUrl, 220);
   await makeQR(document.getElementById('presQrCanvas'), joinUrl, 100);
 
   if (addName) {
