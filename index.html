@@ -36,7 +36,10 @@
     .logo-divider{width:1px;height:28px;background:rgba(255,255,255,.15);}
     .logo-sub{font-size:.68rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.08em;font-family:'Montserrat',sans-serif;font-weight:700;}
     .header-title{font-size:1rem;font-weight:800;font-family:'Montserrat',sans-serif;letter-spacing:.03em;color:var(--accent-light);}
-    .header-actions{display:flex;gap:8px;}
+    .header-actions{display:flex;gap:8px;align-items:center;}
+    .gh-link{display:inline-flex;align-items:center;color:var(--text-secondary);transition:color .2s;}
+    .gh-link:hover{color:var(--text-primary);}
+    .gh-link svg{width:22px;height:22px;fill:currentColor;}
     .btn{padding:8px 16px;border:none;border-radius:6px;font-size:.82rem;font-weight:700;cursor:pointer;font-family:'Montserrat',sans-serif;transition:all .2s;}
     .btn-primary{background:var(--grad-brand);color:#fff;box-shadow:0 2px 14px rgba(213,82,43,.35);}
     .btn-primary:hover{box-shadow:0 4px 24px rgba(213,82,43,.6);transform:translateY(-1px);}
@@ -82,7 +85,7 @@
     #pendingList li .add-btn{background:var(--accent);color:#fff;border:none;border-radius:4px;padding:3px 9px;font-size:.7rem;cursor:pointer;font-family:'Montserrat',sans-serif;font-weight:700;}
     #pendingList li .add-btn:hover{background:var(--accent-light);}
     .empty-pending{font-size:.78rem;color:var(--text-muted);text-align:center;padding:6px 0;}
-    .attendee-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:20px;}
+    .attendee-chips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px;min-height:20px;max-height:45vh;overflow-y:auto;scroll-behavior:smooth;}
     .attendee-chip{padding:4px 12px;border-radius:20px;font-size:.74rem;font-weight:600;color:#fff;white-space:nowrap;letter-spacing:.01em;}
     .attendee-count{font-size:.7rem;color:var(--text-muted);margin-bottom:10px;font-family:'Montserrat',sans-serif;}
     .edit-details summary{font-size:.72rem;color:var(--text-secondary);cursor:pointer;padding:5px 0 8px;user-select:none;list-style:none;display:flex;align-items:center;gap:5px;font-family:'Montserrat',sans-serif;}
@@ -173,11 +176,11 @@
 
 <!-- MOBILE JOIN PAGE -->
 <div class="join-page" id="joinPage">
-  <div class="join-brand">
+  <a href="https://globalai.community/" target="_blank" rel="noopener" class="join-brand" style="text-decoration:none;color:inherit;">
     <img src="https://globalai.community/images/logo.svg" alt="Global AI Community">
     <div class="logo-divider"></div>
     <span class="logo-sub">Meetup Wheel</span>
-  </div>
+  </a>
   <div class="join-card" id="joinFormCard">
     <span class="join-big-icon">&#127921;</span>
     <h1>Join the Wheel!</h1>
@@ -203,13 +206,14 @@
 <!-- MAIN APP -->
 <div id="mainApp">
   <header class="header">
-    <div class="logo">
+    <a href="https://globalai.community/" target="_blank" rel="noopener" class="logo" style="text-decoration:none;color:inherit;">
       <img src="https://globalai.community/images/logo.svg" alt="Global AI Community">
       <div class="logo-divider"></div>
       <span class="logo-sub">Meetup Edition</span>
-    </div>
+    </a>
     <div class="header-title">&#127921; Wheel of Names</div>
     <div class="header-actions">
+      <a href="https://github.com/ma3u/wheel" target="_blank" rel="noopener" class="gh-link" title="View on GitHub"><svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0016 8c0-4.42-3.58-8-8-8z"/></svg></a>
       <button class="btn btn-primary" id="presentBtn">&#x26F6; Present</button>
     </div>
   </header>
@@ -274,10 +278,10 @@ Hannah</textarea>
 <!-- PRESENTATION MODE -->
 <div class="pres-mode" id="presMode">
   <div class="pres-header">
-    <div class="pres-logo">
+    <a href="https://globalai.community/" target="_blank" rel="noopener" class="pres-logo" style="text-decoration:none;color:inherit;">
       <img src="https://globalai.community/images/logo.svg" alt="Global AI Community">
       <span class="pres-logo-text">Global AI Community &middot; Meetup</span>
-    </div>
+    </a>
     <button class="pres-close" id="presClose">&#10005; Exit (Esc)</button>
   </div>
   <div class="pres-wheel">
@@ -510,6 +514,7 @@ try {
       chips.appendChild(chip);
     });
     if (countEl) countEl.textContent = list.length ? list.length + ' on the wheel' : 'No participants yet';
+    chips.scrollTop = chips.scrollHeight;
   }
 
   function parseNames() {
