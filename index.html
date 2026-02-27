@@ -224,6 +224,7 @@
       </div>
       <div class="spin-footer">
         <button id="spinBtn">&#127919; SPIN THE WHEEL</button>
+        <button id="mainClearBtn" class="pres-clear-btn" style="margin-top:8px;">&#10005; Clear All</button>
         <div class="stats">Participants: <span class="stat-value" id="countStat">0</span></div>
 
       </div>
@@ -678,17 +679,7 @@ try {
     document.exitFullscreen?.().catch(() => {});
   }
   presClose.addEventListener('click', exitPres);
-  document.getElementById('presClearBtn').addEventListener('click', () => {
-    if (confirm('Clear all names from the wheel?')) {
-      namesInput.value = ''; joinedViaQR = []; pending = [];
-      parseNames(); draw(); renderPending(); broadcast();
-      if (fbDb) {
-        fbDb.ref('wheel/names').set('').catch(() => {});
-        fbDb.ref('wheel/pending').remove().catch(() => {});
-      }
-      toast('\ud83d\uddd1\ufe0f Wheel cleared!');
-    }
-  });
+  document.getElementById('presClearBtn').addEventListener('click', clearAll);
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
   spinBtn.addEventListener('click', spin);
   presSpinBtn.addEventListener('click', spin);
@@ -707,16 +698,19 @@ try {
     if (fbDb) fbDb.ref('wheel/names').set(namesInput.value).catch(() => {});
     toast('\ud83d\udd00 Names shuffled!');
   });
-  clearBtn.addEventListener('click', () => {
-    if (confirm('Clear all names?')) {
+  function clearAll() {
+    if (confirm('Clear all names from the wheel?')) {
       namesInput.value = ''; joinedViaQR = []; pending = [];
       parseNames(); draw(); renderPending(); broadcast();
       if (fbDb) {
         fbDb.ref('wheel/names').set('').catch(() => {});
         fbDb.ref('wheel/pending').remove().catch(() => {});
       }
+      toast('\ud83d\uddd1\ufe0f Wheel cleared!');
     }
-  });
+  }
+  clearBtn.addEventListener('click', clearAll);
+  document.getElementById('mainClearBtn').addEventListener('click', clearAll);
   winnerClose.addEventListener('click', () => winnerOverlay.classList.remove('show'));
   winnerOverlay.addEventListener('click', e => { if (e.target === winnerOverlay) winnerOverlay.classList.remove('show'); });
   document.addEventListener('keydown', e => {
