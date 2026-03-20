@@ -6,6 +6,7 @@ Attendees join by scanning a QR code on their phone — their name appears insta
 **Live:** <https://ma3u.github.io/wheel/>  
 **Join URL:** <https://ma3u.github.io/wheel/?join>
 
+![alt text](image.png)
 ---
 
 ## Features
