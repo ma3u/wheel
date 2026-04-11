@@ -166,7 +166,7 @@ Use Github Pages. So create a modern type script app in a single index.html file
 ### 2. Start the web server locally
 
 ```bash
-npm run dev
+npm install && npm start
 ```
 You should see the QR Code and a working wheel of names.
 
