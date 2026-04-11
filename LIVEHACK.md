@@ -194,6 +194,9 @@ When the presenter start the wheel dont use a name, what is chosen before.
 The presenter can reset the names and delete the names from the database.
 ```
 
+<img width="844" height="905" alt="image" src="https://github.com/user-attachments/assets/4b577002-fdd7-419f-bd61-df833c8d3fef" />
+
+
 Check the local browser to see the real-time updates as you add names from the mobile view.
 
 ## Optional
