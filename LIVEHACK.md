@@ -140,8 +140,6 @@ Keep returning to this promise throughout the session. The moment the audience s
 │  GitHub Copilot Chat open   │  wheel/ (presenter view)    │
 ```
 
-Bump font size to 20 pt in VS Code so the back row can read it.  
-Use **Presentation Mode** (`F` key) on the wheel tab when spinning.
 
 ---
 
@@ -158,10 +156,22 @@ Open in Visual Studio Code [Copilot Chat](https://docs.github.com/en/copilot/git
 
 ### 1. Explain What You Want To Build
 ```
-In our last Global AI Community event. Zaid gave out Swaggs and Merch and use a wheel of names to pick 5 winners. He used a shady website with ads and trackers. Not very GDPR comppliant. So today we're going to build our own wheel of names — live on stage, with GitHub Copilot. No queue of 50 people inserting their names manually. Instead we will have a QR code that anyone can scan with their mobile to join the wheel in real time in parallel. Use the community look and feel from this website:  https://globalai.community/chapters/berlin/events/agentcon-berlin-2026/
+In our last Global AI Community event. Zaid gave out Swaggs and Merch and use a wheel of names to pick 5 winners.
+He used a shady website with ads and trackers. Not very GDPR comppliant.
+So today we're going to build our own wheel of names — live on stage, with GitHub Copilot.
+No queue of 50 people inserting their names manually. Instead we will have a QR code that anyone can scan with their mobile to join the 
+wheel in real time in parallel. Use the community look and feel from this website:
+https://globalai.community/chapters/berlin/events/agentcon-berlin-2026/
 
-Use Github Pages. So create a modern type script app in a single index.html file.  start teh server locally. install everything you need for this locally.
+Use Github Pages. So create a modern type script app in a single index.html file.
+start teh server locally. install everything you need for this locally.
 ```
+
+```
+add this project to git and commit and push to github as new public project in my Github Account 
+deploy the app to Github pages
+```
+
 
 ### 2. Start the web server locally
 
