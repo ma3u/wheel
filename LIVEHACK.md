@@ -182,20 +182,21 @@ You should see the QR Code and a working wheel of names.
 
 ### 3. QR Code Join Flow 
 
-Create a Firebase Account with your Google Account at [console.firebase.google.com](https://console.firebase.google.com/). Create a new project, then go to **Realtime Database** and create a database in test mode. And copy your API into the chat.
+Create a Firebase Account with your Google Account at [console.firebase.google.com](https://console.firebase.google.com/). 
+Create a new project, then go to **Realtime Database** and create a database in test mode. And copy your API into the chat.
 
 ```
-Now implement the mobile join flow. When a user submits their name, it should be added to a Firebase Realtime Database.  Create a mobile view after scanning the QR code and input youur name. He can only join once with his name on the computer. So check if the name already exists in the wheel or in the pending list before adding it to Firebase. 
+Now implement the mobile join flow. When a user submits their name, it should be added to a Firebase Realtime Database.
+Create a mobile view after scanning the QR code and input youur name. He can only join once with his name on the computer.
+So check if the name already exists in the wheel or in the pending list before adding it to Firebase. 
 
 Never store secrets in the Github repo.
 
-When the presenter start the wheel dont use a name, what is chosen before.
-
-The presenter can reset the names and delete the names from the database.
+The presenter can reset the names and delete all names from the database.
 ```
+paste the firebase code from the app into your Coding Agent:
 
 <img width="844" height="905" alt="image" src="https://github.com/user-attachments/assets/4b577002-fdd7-419f-bd61-df833c8d3fef" />
-
 
 Check the local browser to see the real-time updates as you add names from the mobile view.
 
