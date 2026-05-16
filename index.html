@@ -163,6 +163,15 @@
     @keyframes spin{to{transform:rotate(360deg)}}
     .join-waiting h2{font-size:1.4rem;font-weight:800;background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:6px;font-family:'Montserrat',sans-serif;}
     .join-waiting p{color:var(--text-secondary);font-size:.88rem;}
+    /* MOBILE WINNER CELEBRATION */
+    .join-winner-wrap{display:none;}
+    .join-winner-wrap.show{display:block;}
+    .join-winner-card{background:#1e224e;border:2px solid rgba(213,82,43,.45);border-radius:24px;padding:48px 32px;text-align:center;animation:popIn .45s cubic-bezier(.34,1.56,.64,1);box-shadow:0 0 80px rgba(213,82,43,.35);max-width:420px;width:100%;}
+    .join-winner-card .winner-emoji{font-size:4rem;display:block;margin-bottom:12px;}
+    .join-winner-card .winner-label{font-size:.75rem;color:var(--text-secondary);text-transform:uppercase;letter-spacing:.18em;font-weight:700;margin-bottom:14px;font-family:'Montserrat',sans-serif;}
+    .join-winner-card .winner-name{font-size:2.4rem;font-weight:900;line-height:1.1;background:var(--grad-brand);-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:16px;font-family:'Montserrat',sans-serif;}
+    .join-winner-card .winner-you{font-size:1.6rem;font-weight:900;color:#10b981;margin-bottom:8px;font-family:'Montserrat',sans-serif;}
+    .join-winner-card .winner-msg{font-size:.9rem;color:var(--text-secondary);margin-top:10px;}
     .fb-status{font-size:.62rem;padding:3px 8px;border-radius:4px;font-weight:700;display:inline-block;margin-top:6px;font-family:'Montserrat',sans-serif;}
     .fb-status.ok{background:rgba(16,185,129,.15);color:#34d399;border:1px solid rgba(16,185,129,.3);}
     .fb-status.err{background:rgba(239,68,68,.12);color:#f87171;border:1px solid rgba(239,68,68,.25);}
@@ -193,7 +202,7 @@
     <button class="join-submit" id="joinSubmit">Add me to the wheel &#127919;</button>
   </div>
   <div class="join-success-wrap" id="joinSuccessWrap">
-    <div class="join-card">
+    <div class="join-card" id="joinWaitingCard">
       <span class="join-big-icon">&#127881;</span>
       <h1>You&rsquo;re in!</h1>
       <div class="join-waiting">
@@ -202,6 +211,15 @@
         <p>You&rsquo;ve been added to the wheel!<br>Good luck when it spins!</p>
       </div>
       <p class="join-hint" style="margin-top:16px;">Good luck! &#127808;</p>
+    </div>
+  </div>
+  <div class="join-winner-wrap" id="joinWinnerWrap">
+    <div class="join-winner-card">
+      <div class="winner-label">&#127881; And the winner is&hellip;</div>
+      <span class="winner-emoji" id="joinWinnerEmoji">&#127942;</span>
+      <div class="winner-name" id="joinWinnerName"></div>
+      <div class="winner-you" id="joinWinnerYou" style="display:none;">&#127881; THAT&rsquo;S YOU! &#127881;</div>
+      <p class="winner-msg" id="joinWinnerMsg"></p>
     </div>
   </div>
 </div>
@@ -408,6 +426,54 @@ try {
     }
     btn.addEventListener('click', doJoin);
     inp.addEventListener('keydown', e => { if (e.key === 'Enter') doJoin(); });
+
+    // Listen for winner announcement on mobile
+    if (fbDb) {
+      let joinedName = '';
+      const origDoJoin = doJoin;
+      // Capture the joined name after successful join
+      const observer = new MutationObserver(() => {
+        const tn = document.getElementById('joinTicketName');
+        if (tn && tn.textContent) { joinedName = tn.textContent; }
+      });
+      observer.observe(document.getElementById('joinTicketName'), { childList: true, characterData: true, subtree: true });
+
+      fbDb.ref('wheel/winner').on('value', snap => {
+        const val = snap.val();
+        if (!val || !val.name) return;
+        const winnerWrap = document.getElementById('joinWinnerWrap');
+        const waitingCard = document.getElementById('joinWaitingCard');
+        const winnerEmoji = document.getElementById('joinWinnerEmoji');
+        const winnerName = document.getElementById('joinWinnerName');
+        const winnerYou = document.getElementById('joinWinnerYou');
+        const winnerMsg = document.getElementById('joinWinnerMsg');
+        // Show winner celebration
+        winnerEmoji.textContent = '\uD83C\uDFC6';
+        winnerName.textContent = val.name;
+        const isMe = joinedName && val.name.toLowerCase() === joinedName.toLowerCase();
+        winnerYou.style.display = isMe ? 'block' : 'none';
+        winnerMsg.textContent = isMe ? 'Congratulations! Go claim your prize!' : 'Better luck next time!';
+        if (waitingCard) waitingCard.style.display = 'none';
+        winnerWrap.classList.add('show');
+        // Rain confetti on mobile too
+        mobileConfetti();
+      });
+    }
+
+    function mobileConfetti() {
+      const C = ['#d5522b','#e8762a','#1e224e','#bed7e4','#fff','#f59e0b','#0ea5e9','#10b981'];
+      for (let i = 0; i < 80; i++) {
+        const el = document.createElement('div');
+        el.className = 'confetti';
+        el.style.cssText = 'left:' + Math.random()*100 + 'vw;top:-8px;background:' + C[i%C.length]
+          + ';width:' + (5+Math.random()*8) + 'px;height:' + (5+Math.random()*8)
+          + 'px;border-radius:' + (Math.random()>.5?'50%':'2px')
+          + ';animation-delay:' + Math.random()*.9 + 's;animation-duration:' + (2.5+Math.random()*2) + 's;';
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 5500);
+      }
+    }
+
     return;
   }
 
@@ -586,6 +652,10 @@ try {
     winnerNameEl.textContent = emojiFor(name) + ' ' + name;
     winnerOverlay.classList.add('show');
     rainConfetti();
+    // Broadcast winner to mobile clients via Firebase
+    if (fbDb) {
+      fbDb.ref('wheel/winner').set({ name, ts: Date.now() }).catch(() => {});
+    }
   }
 
   function rainConfetti() {
