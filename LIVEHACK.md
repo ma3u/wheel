@@ -44,11 +44,11 @@ Launch it once to confirm it starts correctly.
 # 👉 Start The Live hack! 
 
 ## 1. Explain Github Copilot What You Want To Build
-```
-In our last Global AI Community event. Zaid gave out Swaggs and Merch and use a wheel of names to pick 5 winners of over 200. He used a shady website with ads and trackers. Not very GDPR compliant. So today we're going to build our own wheel of names — We need a QR code that anyone can scan with their mobile to join the wheel game. Use the community look and feel from this website:  https://globalai.community/chapters/berlin/events/agentcon-berlin-2026/
 
-Create a new public  Github repository called "wheel2". Deploy it to Github Pages. So create a modern type script app in a single index.html file.  start teh server locally. install everything you need for this locally. Use git and GH CLI. If you dont find it, install it.  
-```
+
+> In our last Global AI Community event. Zaid gave out Swaggs and Merch and use a wheel of names to pick 5 winners of over 200. He used a shady website with ads and trackers. Not very GDPR compliant. So today we're going to build our own wheel of names — We need a QR code that anyone can scan with their mobile to join the wheel game. Use the community look and feel from this website:  https://globalai.community/chapters/berlin/events/agentcon-berlin-2026/
+>
+> Create a new public  Github repository called "wheel2". Deploy it to Github Pages. So create a modern type script app in a single index.html file.  start teh server locally. install everything you need for this locally. Use git and GH CLI. If you dont find it, install it.  
 
 ## 2. Start the web server locally
 
@@ -57,35 +57,31 @@ You should see the QR Code and a working wheel of names.
 ### 3. QR Code Join Flow 
 
 Install firebase CLI tools, login and create a new project for the wheel of names.
-```
 
-Now implement the mobile join flow. When a user submits their name, it should be added to a Firebase Realtime Database.  Create a mobile view after scanning the QR code and input youur name. He can only join once. So check if the name already exists in the wheel or in the pending list before adding it to Firebase. 
 
-Never store secrets in the Github repo.
+> Now implement the mobile join flow. When a user submits their name, it should be added to a Firebase Realtime Database.  Create a mobile view after scanning the QR code and input youur name. He can only join once. So check if the name already exists in the wheel or in the pending list before adding it to Firebase.
+>
+> Never store secrets in the Github repo.
+> The presenter have a minimize full screen presenter view andcan reset the names and delete the names from the database.
 
-The presenter have a minimize full screen presenter view andcan reset the names and delete the names from the database.
-```
 
 # Optional
 
 ## 4. Sound & confetti
-```
-create sounds and confetti for the winner!
-```
+
+> create sounds and confetti for the winner!
+
 
 ## 5. Presentation Mode
-```
-Presentation mode: fullscreen overlay with a larger canvas.
-QR code in the corner showing the ?join URL.
-Use keyboard shortcuts: and show the shortcuts on the screen when the presenter presses "?"
+> Presentation mode: fullscreen overlay with a larger canvas.
+> QR code in the corner showing the ?join URL.
+> Use keyboard shortcuts: and show the shortcuts on the screen when the presenter presses "?"
+>
+> Show in realtime the joined people with emojis and names. add the people on the wheel automatically.
 
-Show in realtime the joined people with emojis and names. add the people on the wheel automatically.
-```
 
 ## 6. Multi Tenancy
-```
-Implement multi-tenancy so that multiple events can run their own wheel in the same time. So when you create a new wheel, it generates a unique ID and the QR code points to that ID. The Firebase data structure should support multiple wheels with their own set of names.
-```
+> Implement multi-tenancy so that multiple events can run their own wheel in the same time. So when you create a new wheel, it generates a unique ID and the QR code points to that ID. The Firebase data structure should support multiple wheels with their own set of names.
 ---
 
 # 🙌 Sponsor
