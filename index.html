@@ -660,6 +660,9 @@ try {
   function showWinner(name) {
     document.querySelector('.winner-emoji').textContent = emojiFor(name);
     winnerNameEl.textContent = emojiFor(name) + ' ' + name;
+    // In fullscreen presenter mode only descendants of presMode render,
+    // so move the overlay inside presMode to keep the winner visible.
+    (inPres ? presMode : document.body).appendChild(winnerOverlay);
     winnerOverlay.classList.add('show');
     rainConfetti();
     // Broadcast winner to mobile clients via Firebase
@@ -677,7 +680,7 @@ try {
         + ';width:' + (6+Math.random()*10) + 'px;height:' + (6+Math.random()*10)
         + 'px;border-radius:' + (Math.random()>.5?'50%':'2px')
         + ';animation-delay:' + Math.random()*.9 + 's;animation-duration:' + (2.5+Math.random()*2) + 's;';
-      document.body.appendChild(el);
+      (inPres ? presMode : document.body).appendChild(el);
       setTimeout(() => el.remove(), 5500);
     }
   }
@@ -795,6 +798,8 @@ try {
     inPres = false; presMode.classList.remove('active');
     document.body.style.overflow = '';
     document.exitFullscreen?.().catch(() => {});
+    // Restore the winner overlay to the body for normal (non-presenter) mode.
+    document.body.appendChild(winnerOverlay);
   }
   presClose.addEventListener('click', exitPres);
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && inPres) exitPres(); });
