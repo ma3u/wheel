@@ -440,9 +440,19 @@ try {
 
       fbDb.ref('wheel/winner').on('value', snap => {
         const val = snap.val();
-        if (!val || !val.name) return;
         const winnerWrap = document.getElementById('joinWinnerWrap');
         const waitingCard = document.getElementById('joinWaitingCard');
+        if (!val || !val.name) {
+          // Winner was cleared — reset the mobile view back to the join form
+          winnerWrap.classList.remove('show');
+          document.querySelectorAll('.confetti').forEach(c => c.remove());
+          if (waitingCard) waitingCard.style.display = '';
+          sw.classList.remove('show');
+          fc.style.display = '';
+          inp.value = '';
+          btn.disabled = false; btn.textContent = 'Add me to the wheel 🎯';
+          return;
+        }
         const winnerEmoji = document.getElementById('joinWinnerEmoji');
         const winnerName = document.getElementById('joinWinnerName');
         const winnerYou = document.getElementById('joinWinnerYou');
@@ -812,6 +822,7 @@ try {
       if (fbDb) {
         fbDb.ref('wheel/names').set('').catch(() => {});
         fbDb.ref('wheel/pending').remove().catch(() => {});
+        fbDb.ref('wheel/winner').remove().catch(() => {});
       }
       toast('\ud83d\uddd1\ufe0f Wheel cleared!');
     }
