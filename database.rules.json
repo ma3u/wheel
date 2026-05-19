@@ -8,6 +8,29 @@
       "pending": {
         ".read": true,
         ".write": true
+      },
+      "winner": {
+        ".read": true,
+        ".write": true
+      }
+    },
+    "wheels": {
+      "$roomId": {
+        "participants": {
+          ".read": true,
+          "$participantId": {
+            ".write": true,
+            ".validate": "newData.hasChildren(['name', 'joinedAt']) && newData.child('name').isString() && newData.child('name').val().length > 0 && newData.child('name').val().length <= 30"
+          }
+        },
+        "winners": {
+          ".read": true,
+          ".write": true
+        },
+        "status": {
+          ".read": true,
+          ".write": true
+        }
       }
     }
   }
