@@ -6,6 +6,12 @@ This guide walks you through presenting **Wheel of Names** as a live-coding demo
 
 **What the audience gets:** they scan a QR code from your screen, enter their name, watch it appear live on the wheel, and one of them wins a prize. Full loop, real-time, no server setup on stage.
 
+## 📱 Scan to Join
+
+![QR Code – Join the Wheel](qrcode.png)
+
+👆 Scan this QR code to open the Wheel of Names and join the game!
+
 ---
 
 
